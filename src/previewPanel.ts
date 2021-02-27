@@ -92,7 +92,9 @@ export class PreviewPanel {
 		//   this._disposables
 		// );
 	}
-
+	public update() {
+		this._update();
+	}
 	public dispose() {
 		for (const [file, panel] of PreviewPanel.panels.entries()) {
 			if (panel === this) {
@@ -132,28 +134,14 @@ export class PreviewPanel {
 					vscode.window.showErrorMessage(data.value);
 					break;
 				}
-				// case "tokens": {
-				//   await Util.globalState.update(accessTokenKey, data.accessToken);
-				//   await Util.globalState.update(refreshTokenKey, data.refreshToken);
-				//   break;
-				// }
 			}
 		});
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview) {
-		// // And the uri we use to load this script in the webview
 		const scriptUri = webview.asWebviewUri(
 			vscode.Uri.joinPath(this._extensionUri, "svelte", "main.js")
 		);
-
-		// const cssUri = webview.asWebviewUri(
-		// 	vscode.Uri.joinPath(
-		// 		this._extensionUri,
-		// 		"out",
-		// 		"compiled/swiper.css"
-		// 	)
-		// );
 
 		// Use a nonce to only allow specific scripts to be run
 		const nonce = getNonce();
@@ -163,10 +151,6 @@ export class PreviewPanel {
 		<html lang="en">
 			<head>
 				<meta charset="UTF-8" />
-				<!--
-							Use a content security policy to only allow loading images from https or from our extension directory,
-							and only allow scripts that have a specific nonce.
-				-->
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <!--
 				<script defer type="module" src="${scriptUri}" nonce="${nonce}"></script>-->
