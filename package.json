@@ -1,5 +1,5 @@
 {
-  "name": "svelte-preview",
+	"name": "svelte-preview",
 	"displayName": "Svelte Preview",
 	"description": "live preview od svelte files",
 	"version": "0.0.1",
@@ -10,14 +10,16 @@
 		"Other"
 	],
 	"activationEvents": [
-        "onCommand:svelte-preview.helloWorld"
+		"onCommand:svelte-preview.componentPreview",
+		"onWebviewPanel:componentPreview"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "svelte-preview.helloWorld",
-				"title": "Hello World"
+				"command": "svelte-preview.componentPreview",
+				"title": "Preview component",
+				"category": "svelte-preview"
 			}
 		]
 	},
@@ -30,16 +32,17 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.53.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.4",
 		"@types/node": "^12.11.7",
-		"eslint": "^7.19.0",
+		"@types/vscode": "^1.53.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
+		"eslint": "^7.19.0",
 		"glob": "^7.1.6",
 		"mocha": "^8.2.1",
 		"typescript": "^4.1.3",
-		"vscode-test": "^1.5.0"
+		"vscode-test": "^1.5.0",
+		"svelte": "^3.34.0"
 	}
 }
