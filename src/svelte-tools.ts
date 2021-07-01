@@ -1,24 +1,5 @@
 import { compile as sveltecompile } from "svelte/compiler";
-import * as path from "path";
-import { ExtensionContext } from "vscode";
-import { readFileSync } from "fs";
-
-export interface CompileError {
-  code: string;
-  end: {
-    line: number;
-    column: number;
-    character: number;
-  };
-  start: {
-    line: number;
-    column: number;
-    character: number;
-  };
-  filename: string | undefined;
-  message: string;
-  pos: number;
-}
+import { Warning } from "svelte/types/compiler/interfaces";
 
 let svelteCode = "";
 
@@ -30,8 +11,7 @@ export async function compile(
 ) {
   try {
     let compiled = sveltecompile(code);
-    let err = compiled.warnings as CompileError[];
-    // get js from compilation
+    let err = compiled.warnings;
 
     let js: string = compiled.js.code; // convert js imports to browser imports
 
@@ -57,7 +37,7 @@ export async function compile(
     return {
       js: "",
       css: "",
-      err: [],
+      err: [{ ...e, message: e.name }],
     };
   }
 }

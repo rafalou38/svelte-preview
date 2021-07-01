@@ -60,11 +60,21 @@
 	}
 
 	$: $config, applyConfig()
+
 </script>
 
 <div class="wrapper">
 	<Controls/>
 	<iframe title="preview" bind:this={iframe}></iframe>
+	{#if $code?.err}
+		<ul class="errors">
+			{#each $code?.err as error}
+				 <li class="error">
+					<span>{error.message}</span> <span>({error.start.line}:{error.start.column})</span>
+				 </li>
+			{/each}
+		</ul>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -89,5 +99,25 @@
 	iframe {
 		flex-grow: 1;
 		border: none;
+	}
+	.errors{
+		border-radius: 1rem 1rem 0 0;
+		background: var(--vscode-editorError-foreground);
+		color: white;
+		margin: 0 1rem;
+		padding: 0;
+	}
+	.error{
+		margin: 0;
+		padding: 2rem;
+		list-style: none;
+		display: flex;
+		justify-content: space-between;
+		&+&{
+			border-top: 3px solid #00000012;
+		}
+		span{
+			font-size: 20px;
+		}
 	}
 </style>
