@@ -1,9 +1,23 @@
 import { writable } from "svelte/store";
+import type { CompileError } from "./types";
 
 export const vscode = writable<WebviewApi | null>(acquireVsCodeApi());
+export const code = writable<{
+  js: string;
+  css: string;
+  err: CompileError[];
+} | null>();
 
 window.addEventListener("message", (event) => {
-  if (event.origin !== "vscode-webview://webviewview-themeswitcher-sidebar") {
-    return console.warn(event.origin, "is a bad origin");
+  if (!event.origin.startsWith("vscode-webview://"))
+    return console.warn("wrong origin: " + event.origin);
+
+  switch (event.data.type) {
+    case "codeUpdate":
+      code.set(event.data.value);
+      break;
+
+    default:
+      break;
   }
 });

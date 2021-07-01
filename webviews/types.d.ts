@@ -1,6 +1,12 @@
 declare interface WebviewApi {
   getState: () => any;
-  postMessage: (message: any, transfer?: any) => any;
+  postMessage: (
+    message: {
+      type: string | "onInfo" | "onError";
+      value: any;
+    },
+    transfer?: any
+  ) => any;
   setState: (newState: any) => any;
 }
 

@@ -80,6 +80,33 @@ export class PreviewPanel {
     this._extensionUri = extensionUri;
 
     // Set the webview's initial html content
+
+    const webview = this._panel.webview;
+    webview.html = this._getHtmlForWebview(webview);
+
+    webview.onDidReceiveMessage(async (data) => {
+      switch (data.type) {
+        case "actualize": {
+          this.sendCode();
+          break;
+        }
+        case "onInfo": {
+          if (!data.value) {
+            return;
+          }
+          vscode.window.showInformationMessage(data.value);
+          break;
+        }
+        case "onError": {
+          if (!data.value) {
+            return;
+          }
+          vscode.window.showErrorMessage(data.value);
+          break;
+        }
+      }
+    });
+
     this._update();
 
     // Listen for when the panel is disposed
@@ -108,27 +135,20 @@ export class PreviewPanel {
     }
   }
 
-  private async _update() {
-    const webview = this._panel.webview;
-    this._panel.webview.html = await this._getHtmlForWebview(webview);
-    webview.onDidReceiveMessage(async (data) => {
-      switch (data.type) {
-        case "onInfo": {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showInformationMessage(data.value);
-          break;
-        }
-        case "onError": {
-          if (!data.value) {
-            return;
-          }
-          vscode.window.showErrorMessage(data.value);
-          break;
-        }
-      }
+  private async sendCode() {
+    const result = await svelte.compile(
+      this.document?.getText() || "",
+      true,
+      true,
+      ".root"
+    );
+    this._panel.webview.postMessage({
+      type: "codeUpdate",
+      value: result,
     });
+  }
+  private async _update() {
+    this.sendCode();
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
