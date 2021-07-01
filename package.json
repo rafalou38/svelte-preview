@@ -2,6 +2,7 @@
   "name": "svelte-preview",
   "displayName": "Svelte Preview",
   "description": "live preview od svelte files",
+  "publisher": "Rafael Martinez",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.53.0"
