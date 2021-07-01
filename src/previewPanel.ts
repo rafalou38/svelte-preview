@@ -89,7 +89,14 @@ export class PreviewPanel {
     webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "actualize": {
-          this.sendCode();
+          this.update();
+          break;
+        }
+        case "editConfig": {
+          this.context?.workspaceState.update(
+            "svelte-preview-config",
+            data.value
+          );
           break;
         }
         case "onInfo": {
@@ -122,7 +129,6 @@ export class PreviewPanel {
     for (const [file, panel] of PreviewPanel.panels.entries()) {
       if (panel === this) {
         PreviewPanel.panels.delete(file);
-        console.log("disposed", file, this);
       }
     }
 
@@ -164,9 +170,21 @@ export class PreviewPanel {
       value: svelteCode,
     });
   }
+  private async sendConfig() {
+    const config = this.context?.workspaceState.get("svelte-preview-config", {
+      center: false,
+      bg: "#fff0",
+      zoom: "1",
+    });
+    this._panel.webview.postMessage({
+      type: "setConfig",
+      value: config,
+    });
+  }
   private async _update() {
     this.sendSvelteCode();
     this.sendCode();
+    this.sendConfig();
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
