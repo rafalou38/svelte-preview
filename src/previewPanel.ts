@@ -131,72 +131,37 @@ export class PreviewPanel {
     });
   }
 
-  private async _getHtmlForWebview(webview: vscode.Webview) {
-    if (!this.context) {
-      throw new Error("no context");
-    }
-
-    const scriptFile = vscode.Uri.file(
-      path.join(this.context.extensionPath, "svelte", "svelte.js")
+  private _getHtmlForWebview(webview: vscode.Webview) {
+    const styleResetUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
     );
-    const scriptUri = webview.asWebviewUri(scriptFile);
-
-    const { js, css, err } = await svelte.compile(
-      this.document?.getText() || "",
-      true,
-      true,
-      ".root"
+    const styleVSCodeUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css")
     );
-    let output = `
-		<!DOCTYPE html>
-		<html lang="en">
-			<head>
-				<meta charset="UTF-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-				<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource};">
-			</head>
-			<body>
-		`;
-    err.forEach((error) => {
-      output += `
-				<div
-					style="
-						background-color: var(--vscode-errorForeground);
-						border-radius: 5px;
-						margin: 5px;
-						display: flex;
-						padding: 0 1em;
-						font-size: calc(var(--vscode-font-size) + 2px);
-						justify-content: space-between;
-						align-items: center;
-					"
-				>
-					<p>${error.code}:${error.message}</p>
-					<p>${error.start.line}:${error.start.line}</p>
-				</div>
 
-			`;
-    });
+    const scriptUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/preview.js")
+    );
+    const styleMainUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/preview.css")
+    );
 
-    output += `
-				<div class="root"></div>
+    // Use a nonce to only allow a specific script to be run.
+    const nonce = getNonce();
 
-				<script type="module">
-					${js}
-				</script>
-
-				<style>
-					${css}
-				</style>
-				<script src=${scriptUri}><script/>
-
-		`;
-
-    output += `
-			</body>
-		</html>
-		`;
-
-    return output;
+    return /*html*/ `<!DOCTYPE html>
+			<html lang="en">
+				<head>
+					<meta charset="UTF-8">
+					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+					<meta name="viewport" content="width=device-width, initial-scale=1.0">
+					<link href="${styleResetUri}" rel="stylesheet">
+					<link href="${styleVSCodeUri}" rel="stylesheet">
+					<link href="${styleMainUri}" rel="stylesheet">
+				</head>
+				<body>
+				<script nonce="${nonce}" src="${scriptUri}"></script>
+				</body>
+			</html>`;
   }
 }
