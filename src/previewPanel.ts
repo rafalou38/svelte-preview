@@ -37,7 +37,7 @@ export class PreviewPanel {
 
       const panel = vscode.window.createWebviewPanel(
         PreviewPanel.viewType,
-        "Preview",
+        path.basename(currentFile) + " - preview",
         column,
         {
           enableScripts: true,
@@ -46,7 +46,10 @@ export class PreviewPanel {
           ],
         }
       );
-
+      panel.iconPath = vscode.Uri.joinPath(
+        extensionUri,
+        "media/svelteLogo.svg"
+      );
       PreviewPanel.panels.set(
         currentFile,
         new PreviewPanel(
