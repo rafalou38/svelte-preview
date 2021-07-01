@@ -2,6 +2,9 @@ import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
 import * as path from "path";
+import { readFileSync } from "fs";
+
+let svelteCode = "";
 
 export class PreviewPanel {
   public static panels = new Map<string, PreviewPanel>();
@@ -39,7 +42,6 @@ export class PreviewPanel {
         {
           enableScripts: true,
           localResourceRoots: [
-            vscode.Uri.joinPath(extensionUri, "svelte"),
             vscode.Uri.joinPath(extensionUri, "out/compiled"),
           ],
         }
@@ -147,7 +149,23 @@ export class PreviewPanel {
       value: result,
     });
   }
+  private async sendSvelteCode() {
+    if (!svelteCode) {
+      const filepath = path.join(
+        this.context?.extensionPath || "",
+        "media",
+        "svelte.js"
+      );
+      const file = readFileSync(filepath);
+      svelteCode = file.toString();
+    }
+    this._panel.webview.postMessage({
+      type: "svelteCode",
+      value: svelteCode,
+    });
+  }
   private async _update() {
+    this.sendSvelteCode();
     this.sendCode();
   }
 
@@ -173,14 +191,14 @@ export class PreviewPanel {
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
-					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource};">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<link href="${styleResetUri}" rel="stylesheet">
 					<link href="${styleVSCodeUri}" rel="stylesheet">
 					<link href="${styleMainUri}" rel="stylesheet">
 				</head>
 				<body>
-				<script nonce="${nonce}" src="${scriptUri}"></script>
+				<script src="${scriptUri}"></script>
 				</body>
 			</html>`;
   }

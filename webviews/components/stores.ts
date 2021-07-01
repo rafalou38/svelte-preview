@@ -7,6 +7,7 @@ export const code = writable<{
   css: string;
   err: CompileError[];
 } | null>();
+export const svelteCode = writable<string | null>();
 
 window.addEventListener("message", (event) => {
   if (!event.origin.startsWith("vscode-webview://"))
@@ -15,6 +16,9 @@ window.addEventListener("message", (event) => {
   switch (event.data.type) {
     case "codeUpdate":
       code.set(event.data.value);
+      break;
+    case "svelteCode":
+      svelteCode.set(event.data.value);
       break;
 
     default:

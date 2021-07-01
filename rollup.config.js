@@ -11,6 +11,7 @@ import sveltePreprocess from "svelte-preprocess";
 
 const production = !process.env.ROLLUP_WATCH;
 
+console.log({ production });
 export default fs
   .readdirSync(path.join(__dirname, "webviews", "pages"))
   .map((input) => {
@@ -29,6 +30,7 @@ export default fs
           compilerOptions: {
             // enable run-time checks when not in production
             dev: !production,
+            sourcemap: !production,
           },
           preprocess: sveltePreprocess(),
         }),
