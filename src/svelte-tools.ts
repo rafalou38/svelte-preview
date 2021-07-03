@@ -1,11 +1,10 @@
 import { compile as sveltecompile } from "svelte/compiler";
-import { Warning } from "svelte/types/compiler/interfaces";
 
 let svelteCode = "";
 
 export async function compile(
   code: string,
-  remove_imports = false,
+  removeImports = false,
   autoInsert = false,
   target = "body"
 ) {
@@ -15,7 +14,7 @@ export async function compile(
 
     let js: string = compiled.js.code; // convert js imports to browser imports
 
-    if (remove_imports) {
+    if (removeImports) {
       js = js.replace(/import[\w\W]+?";/, "");
     }
 
