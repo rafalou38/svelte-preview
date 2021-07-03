@@ -35,6 +35,8 @@ None
 - Imports not working
   - node modules
   - local files
+- Typescript not working **working on it**
+- Sass not working **working on it**
 
 ## Release Notes
 
