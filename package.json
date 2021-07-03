@@ -5,8 +5,12 @@
   "publisher": "RafaelMartinez",
   "author": "Rafael Martinez",
   "version": "1.0.0",
-  "repository": "https://github.com/rafalou38/svelte-preview",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rafalou38/svelte-preview"
+  },
   "license": "MIT",
+  "icon": "media/logo.png",
   "engines": {
     "vscode": "^1.53.0"
   },
