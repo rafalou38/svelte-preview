@@ -46,10 +46,7 @@ export class PreviewPanel {
           ],
         }
       );
-      panel.iconPath = vscode.Uri.joinPath(
-        extensionUri,
-        "media/svelteLogo.svg"
-      );
+      panel.iconPath = vscode.Uri.joinPath(extensionUri, "media/logo.png");
       PreviewPanel.panels.set(
         currentFile,
         new PreviewPanel(
