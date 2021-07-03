@@ -10,6 +10,7 @@ export const code = writable<{
 export const svelteCode = writable<string | null>();
 export const config = writable({
   center: false,
+  activeBg: false,
   bg: "#fff0",
   zoom: "1",
 });

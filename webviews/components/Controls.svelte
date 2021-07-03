@@ -12,9 +12,12 @@
     center
     <Switch id="center" on:change={update} bind:checked={$config.center} />
   </label>
-  <label for="white">
-    background
-    <input type="color" on:change={update} bind:value={$config.bg} />
+  <label for="background">
+		background
+		<Switch id="background" on:change={update} bind:checked={$config.activeBg} />
+		{#if $config.activeBg}
+			 <input type="color" on:change={update} bind:value={$config.bg}/>
+		{/if}
   </label>
   <label for="zoom">
     zoom

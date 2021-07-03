@@ -54,7 +54,7 @@
         root.style.transform = `scale(${$config.zoom})`;
         root.style.transformOrigin = $config.center ? "" : `top left`;
 
-        IBody.style.background = $config.bg;
+        IBody.style.background = $config.activeBg ? $config.bg : "#fff0";
       }
     }
   }
