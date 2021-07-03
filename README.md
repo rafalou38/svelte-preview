@@ -2,6 +2,8 @@
 
 Svelte-preview is a vscode extension to preview your svelte components live
 
+![extension icon](media/logo.png)
+
 ## Features
 
 ### Live preview of svelte files
@@ -24,6 +26,16 @@ Svelte-preview is a vscode extension to preview your svelte components live
 
 ![Errors display](images/theme_aware.gif)
 
+### compatible with preprocessors
+
+- scss
+- typescript
+- babel
+- coffeescript
+- less
+- sass
+- stylus
+
 ## Extension Settings
 
 None
@@ -35,11 +47,25 @@ None
 - Imports not working
   - node modules
   - local files
-- Typescript not working **working on it**
-- Sass not working **working on it**
 
 ## Release Notes
 
 ### 1.0.0
 
 Initial release
+
+### 1.1.0
+
+Add support for preprocessors:
+
+- scss
+- typescript
+- babel
+- coffeescript
+- less
+- sass
+- stylus
+
+editor icon is the same as the extension icon:
+
+![extension icon](media/logo.png)
