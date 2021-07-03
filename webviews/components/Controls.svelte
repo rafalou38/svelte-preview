@@ -13,11 +13,15 @@
     <Switch id="center" on:change={update} bind:checked={$config.center} />
   </label>
   <label for="background">
-		background
-		<Switch id="background" on:change={update} bind:checked={$config.activeBg} />
-		{#if $config.activeBg}
-			 <input type="color" on:change={update} bind:value={$config.bg}/>
-		{/if}
+    background
+    <Switch
+      id="background"
+      on:change={update}
+      bind:checked={$config.activeBg}
+    />
+    {#if $config.activeBg}
+      <input type="color" on:change={update} bind:value={$config.bg} />
+    {/if}
   </label>
   <label for="zoom">
     zoom
@@ -43,7 +47,7 @@
 
 <style lang="scss">
   label {
-    margin: 0 1em;
+    margin: 0 1.5em;
     display: flex;
     // flex-direction: column;
     align-items: center;
