@@ -20,9 +20,32 @@
       {
         "command": "svelte-preview.componentPreview",
         "title": "Preview component",
-        "category": "svelte-preview"
+        "category": "svelte-preview",
+        "icon": "./media/svelteLogo.svg"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "svelte-preview.componentPreview",
+          "when": "editorLangId == svelte"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "svelte-preview.componentPreview",
+          "when": "editorLangId == svelte",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "svelte-preview.componentPreview",
+          "when": "editorLangId == svelte",
+          "group": "1_modification"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
@@ -62,4 +85,6 @@
     "svelte-check": "^1.1.34",
     "svelte-preprocess": "^4.6.8",
     "typescript": "^4.1.3"
+  },
+  "dependencies": {}
 }
