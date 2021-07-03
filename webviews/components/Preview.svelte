@@ -32,7 +32,7 @@
     const style = document.createElement("style");
     style.innerHTML =
       $code?.css +
-        "body{margin:0;}.root{height: 100vh;width: 100vw;padding: 8px;box-sizing: border-box;}" ||
+        "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}.root{height: max-content;width: max-content;}" ||
       "";
     IBody.appendChild(style);
 
@@ -48,13 +48,13 @@
       const IBody = iframe?.contentDocument?.body;
       const root = IBody?.querySelector(".root") as HTMLDivElement;
       if (root) {
-        root.style.display = $config.center ? "grid" : "";
-        root.style.placeItems = "center";
+        IBody.style.display = $config.center ? "grid" : "";
+        IBody.style.placeItems = "center";
 
         root.style.transform = `scale(${$config.zoom})`;
         root.style.transformOrigin = $config.center ? "" : `top left`;
 
-        root.style.background = $config.bg;
+        IBody.style.background = $config.bg;
       }
     }
   }
