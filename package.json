@@ -2,9 +2,11 @@
   "name": "svelte-preview",
   "displayName": "Svelte Preview",
   "description": "live preview of svelte files",
-  "publisher": "Rafael Martinez",
+  "publisher": "RafaelMartinez",
   "author": "Rafael Martinez",
   "version": "1.0.0",
+  "repository": "https://github.com/rafalou38/svelte-preview",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.53.0"
   },
