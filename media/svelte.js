@@ -860,13 +860,8 @@ function create_in_transition(node, fn, params) {
     if (animation_name) delete_rule(node, animation_name);
   }
   function go() {
-    const {
-      delay = 0,
-      duration = 300,
-      easing = identity,
-      tick = noop,
-      css,
-    } = config || null_transition;
+    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
+      config || null_transition;
     if (css)
       animation_name = create_rule(
         node,
@@ -930,13 +925,8 @@ function create_out_transition(node, fn, params) {
   const group = outros;
   group.r += 1;
   function go() {
-    const {
-      delay = 0,
-      duration = 300,
-      easing = identity,
-      tick = noop,
-      css,
-    } = config || null_transition;
+    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
+      config || null_transition;
     if (css)
       animation_name = create_rule(node, 1, 0, duration, delay, easing, css);
     const start_time = now() + delay;
@@ -1006,13 +996,8 @@ function create_bidirectional_transition(node, fn, params, intro) {
     };
   }
   function go(b) {
-    const {
-      delay = 0,
-      duration = 300,
-      easing = identity,
-      tick = noop,
-      css,
-    } = config || null_transition;
+    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
+      config || null_transition;
     const program = {
       start: now() + delay,
       b,
@@ -1346,8 +1331,7 @@ const boolean_attributes = new Set([
   "selected",
 ]);
 
-const invalid_attribute_name_character =
-  /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
+const invalid_attribute_name_character = /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
 // https://infra.spec.whatwg.org/#noncharacter
 function spread(args, classes_to_add) {
