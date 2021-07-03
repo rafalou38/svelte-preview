@@ -69,7 +69,7 @@
     <ul class="errors">
       {#each $code?.err as error}
         <li class="error">
-          <span>{error.message}</span>
+          <span class="msg">{error.message}</span>
           <span>({error.start.line}:{error.start.column})</span>
         </li>
       {/each}
@@ -119,5 +119,10 @@
     span {
       font-size: 20px;
     }
+		.msg{
+			max-width: 80%;
+			white-space: pre-wrap;
+			font-family: var(--vscode-editor-font-family);
+		}
   }
 </style>

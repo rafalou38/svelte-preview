@@ -149,6 +149,7 @@ export class PreviewPanel {
   private async sendCode() {
     const result = await svelte.compile(
       this.document?.getText() || "",
+      this.document?.fileName || "",
       true,
       true,
       ".root"
