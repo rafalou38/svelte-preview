@@ -1,3 +1,4 @@
+import * as path from "path";
 import * as svelte from "svelte/compiler";
 import {
   scss,
@@ -8,6 +9,9 @@ import {
   stylus,
   typescript,
 } from "svelte-preprocess";
+import { readFileSync } from "fs";
+import { Warning } from "svelte/types/compiler/interfaces";
+import { ExtensionContext } from "vscode";
 
 let svelteCode = "";
 
@@ -21,7 +25,83 @@ const preprocessorList = [
   stylus({}),
 ];
 
-export async function compile(
+interface IFinal {
+  js: {
+    [key: string]: string;
+  };
+  css: string;
+  err:
+    | Warning[]
+    | {
+        start: {
+          line: any;
+          column: any;
+        };
+        message: any;
+      }[];
+}
+
+export async function generate(
+  code: string,
+  filename: string,
+  removeImports = false,
+  autoInsert = false,
+  target = "body"
+) {
+  const final: IFinal = {
+    js: {},
+    css: "",
+    err: [],
+  };
+  const result = await compile(
+    code,
+    filename,
+    removeImports,
+    autoInsert,
+    target
+  );
+
+  if (result.err.length !== 0) return { js: {}, css: "", err: result.err };
+
+  final.js[""] = result.js;
+  final.js["svelte/internal"] = svelteCode;
+  final.css += result.css || "";
+
+  const regex = /(?:from.*?)"(.+\.svelte)"/g;
+  const absFilename = path.isAbsolute(filename)
+    ? filename
+    : path.resolve(__dirname, filename);
+
+  let match = regex.exec(final.js[""]);
+
+  do {
+    const depName = match?.[1];
+    if (depName !== undefined) {
+      const depPath = path.resolve(path.dirname(absFilename), depName);
+      const depResult = await generate(
+        readFileSync(depPath).toString(),
+        depPath
+      );
+      if (depResult.err.length !== 0)
+        return { js: {}, css: "", err: result.err };
+
+      final.js[depName] = depResult.js[""];
+      final.css += depResult.css || "";
+    }
+  } while ((match = regex.exec(final.js[""])) !== null);
+
+  return final;
+}
+export function loadSvelteCode(context: ExtensionContext) {
+  const filepath = path.join(
+    context?.extensionPath || "",
+    "media",
+    "svelte.js"
+  );
+  const file = readFileSync(filepath);
+  svelteCode = file.toString();
+}
+async function compile(
   code: string,
   filename: string,
   removeImports = false,
@@ -48,7 +128,7 @@ export async function compile(
       };
     }
 
-    let compiled = svelte.compile(preprocessed.toString?.() || "");
+    let compiled = svelte.compile(preprocessed.toString?.() || "", {});
     let err = compiled.warnings;
 
     let js: string = compiled.js.code; // convert js imports to browser imports

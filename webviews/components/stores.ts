@@ -3,11 +3,13 @@ import type { CompileError } from "./types";
 
 export const vscode = writable<WebviewApi | null>(acquireVsCodeApi());
 export const code = writable<{
-  js: string;
+  js: {
+    [key: string]: string;
+  };
   css: string;
   err: CompileError[];
 } | null>();
-export const svelteCode = writable<string | null>();
+
 export const config = writable({
   center: false,
   activeBg: false,
@@ -25,9 +27,6 @@ window.addEventListener("message", (event) => {
       break;
     case "setConfig":
       config.set(event.data.value);
-      break;
-    case "svelteCode":
-      svelteCode.set(event.data.value);
       break;
 
     default:

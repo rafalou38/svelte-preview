@@ -1,7 +1,8 @@
 <script lang="ts">
   import Controls from "./Controls.svelte";
-  import { code, config, svelteCode, vscode } from "./stores";
-  if (!$code || !$svelteCode) {
+import { transformModulesToBlobURLS } from "./modulesHandler";
+  import { code, config, vscode } from "./stores";
+  if (!$code) {
     $vscode?.postMessage({ type: "actualize", value: "" });
   }
 
@@ -9,13 +10,16 @@
 
   $: if (iframe && $code) injectPreviewInIframe();
 
+
+	function dataUrl(content:string) {
+		return URL.createObjectURL(new Blob([content]))
+	}
   async function injectPreviewInIframe() {
     iframe.contentWindow?.location.reload();
 
     await new Promise((resolve) => (iframe.onload = resolve));
 
     if ($code?.err.length !== 0) return;
-    if (!$svelteCode) return console.error("svelteCode should not be null");
 
     const IBody = iframe.contentDocument?.body;
     if (!IBody) return console.error("contentDocument does not have a body");
@@ -23,10 +27,20 @@
     const root = document.createElement("div");
     root.className = "root";
     IBody.appendChild(root);
+		const mainModuleURI = transformModulesToBlobURLS($code.js)
 
+		console.log($code.js);
+
+		// console.log($code.js);
+		// const urls: {
+		// 	[key:string]: string
+		// } = {};
+		// for (const script in $code.js) {
+		// 	$code.js[script]
+		// }
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");
-    appScript.innerHTML = $code?.js || "";
+		appScript.setAttribute("src", mainModuleURI)
     IBody.appendChild(appScript);
 
     const style = document.createElement("style");
@@ -35,10 +49,6 @@
         "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}.root{height: max-content;width: max-content;}" ||
       "";
     IBody.appendChild(style);
-
-    const svelteScript = document.createElement("script");
-    svelteScript.innerHTML = $svelteCode;
-    IBody.appendChild(svelteScript);
 
     applyConfig();
   }

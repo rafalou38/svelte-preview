@@ -2,9 +2,6 @@ import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
 import * as path from "path";
-import { readFileSync } from "fs";
-
-let svelteCode = "";
 
 export class PreviewPanel {
   public static panels = new Map<string, PreviewPanel>();
@@ -144,31 +141,16 @@ export class PreviewPanel {
   }
 
   private async sendCode() {
-    const result = await svelte.compile(
+    const result = await svelte.generate(
       this.document?.getText() || "",
       this.document?.fileName || "",
-      true,
+      false,
       true,
       ".root"
     );
     this._panel.webview.postMessage({
       type: "codeUpdate",
       value: result,
-    });
-  }
-  private async sendSvelteCode() {
-    if (!svelteCode) {
-      const filepath = path.join(
-        this.context?.extensionPath || "",
-        "media",
-        "svelte.js"
-      );
-      const file = readFileSync(filepath);
-      svelteCode = file.toString();
-    }
-    this._panel.webview.postMessage({
-      type: "svelteCode",
-      value: svelteCode,
     });
   }
   private async sendConfig() {
@@ -183,7 +165,6 @@ export class PreviewPanel {
     });
   }
   private async _update() {
-    this.sendSvelteCode();
     this.sendCode();
     this.sendConfig();
   }
