@@ -184,12 +184,12 @@ export class PreviewPanel {
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
-					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource};">
+					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<link href="${styleMainUri}" rel="stylesheet">
 				</head>
 				<body>
-				<script src="${scriptUri}"></script>
+				<script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 			</html>`;
   }
