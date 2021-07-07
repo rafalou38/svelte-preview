@@ -31,13 +31,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 
 		console.log($code.js);
 
-		// console.log($code.js);
-		// const urls: {
-		// 	[key:string]: string
-		// } = {};
-		// for (const script in $code.js) {
-		// 	$code.js[script]
-		// }
+
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");
 		appScript.setAttribute("src", mainModuleURI)
