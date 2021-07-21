@@ -3,6 +3,7 @@ import * as svelte from "rollup-plugin-svelte";
 import * as css from "rollup-plugin-css-only";
 import * as resolve from "@rollup/plugin-node-resolve";
 import * as commonjs from "@rollup/plugin-commonjs";
+import * as sveltePreprocess from "svelte-preprocess";
 import typescript from "@rollup/plugin-typescript";
 import { locateNodeModules } from "./utils";
 const outputOptions = {};
@@ -44,7 +45,9 @@ export async function generate(
     input: filename,
     plugins: [
       // @ts-ignore
-      svelte(),
+      svelte({
+        preprocess: sveltePreprocess(),
+      }),
       css(),
       resolve.default({
         browser: true,
