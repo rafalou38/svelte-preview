@@ -15,6 +15,7 @@ export const config = writable({
   activeBg: false,
   bg: "#fff0",
   zoom: "1",
+  rollup: false,
 });
 
 window.addEventListener("message", (event) => {

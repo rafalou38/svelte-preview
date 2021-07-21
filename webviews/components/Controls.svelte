@@ -13,18 +13,18 @@
     <Switch id="center" on:change={update} bind:checked={$config.center} />
   </label>
   <label for="background">
-    background
+		background
     <Switch
-      id="background"
-      on:change={update}
-      bind:checked={$config.activeBg}
+		id="background"
+		on:change={update}
+		bind:checked={$config.activeBg}
     />
     {#if $config.activeBg}
-      <input type="color" on:change={update} bind:value={$config.bg} />
+		<input type="color" on:change={update} bind:value={$config.bg} />
     {/if}
   </label>
   <label for="zoom">
-    zoom
+		zoom
     <select name="zoom" on:blur={update} id="zoom" bind:value={$config.zoom}>
       <option value="0.5">0.5x</option>
       <option value="1">1x</option>
@@ -43,10 +43,14 @@
       <option value="12">12x</option>
     </select>
   </label>
+	<label for="rollup">
+		use rollup
+		<Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
+	</label>
 </div>
 
 <style lang="scss">
-  label {
+	label {
     margin: 0 1.5em;
     display: flex;
     // flex-direction: column;

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
+import * as rollup from "./rollup-version";
 import * as path from "path";
 
 export class PreviewPanel {
@@ -90,10 +91,20 @@ export class PreviewPanel {
           break;
         }
         case "editConfig": {
+          const { rollup: oldRollup } = this.context?.workspaceState.get(
+            "svelte-preview-config"
+          ) || {
+            rollup: false,
+          };
+
           this.context?.workspaceState.update(
             "svelte-preview-config",
             data.value
           );
+
+          if (oldRollup !== data.value.rollup) {
+            this.update();
+          }
           break;
         }
         case "onInfo": {
@@ -141,14 +152,31 @@ export class PreviewPanel {
   }
 
   private async sendCode() {
-    const result = await svelte.generate(
-      this.document?.getText() || "",
-      this.document?.fileName || "",
-      "",
-      false,
-      true,
-      ".root"
-    );
+    const { rollup: useRollup } = this.context?.workspaceState.get(
+      "svelte-preview-config"
+    ) || {
+      rollup: false,
+    };
+    let result: IResult | undefined;
+    if (useRollup) {
+      result = await rollup.generate(
+        this.document?.getText() || "",
+        this.document?.fileName || "",
+        "",
+        false,
+        true,
+        ".root"
+      );
+    } else {
+      result = await svelte.generate(
+        this.document?.getText() || "",
+        this.document?.fileName || "",
+        "",
+        false,
+        true,
+        ".root"
+      );
+    }
     this._panel.webview.postMessage({
       type: "codeUpdate",
       value: result,
@@ -159,6 +187,7 @@ export class PreviewPanel {
       center: false,
       bg: "#fff0",
       zoom: "1",
+      rollup: false,
     });
     this._panel.webview.postMessage({
       type: "setConfig",

@@ -37,7 +37,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
     IBody.appendChild(appScript);
 
     const style = document.createElement("style");
-    style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}";
+    style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}" + $code.css;
     IBody.appendChild(style);
 
     applyConfig();

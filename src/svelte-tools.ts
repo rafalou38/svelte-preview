@@ -12,6 +12,7 @@ import {
 import { existsSync, readFileSync } from "fs";
 import { Warning } from "svelte/types/compiler/interfaces";
 import { ExtensionContext } from "vscode";
+import { locateNodeModules } from "./utils";
 
 let svelteCode = "";
 
@@ -25,24 +26,7 @@ const preprocessorList = [
   stylus({}),
 ];
 
-interface IFinal {
-  js: {
-    [key: string]: string;
-  };
-  css: string;
-  err: (
-    | Warning
-    | {
-        start: {
-          line: any;
-          column: any;
-        };
-        message: any;
-      }
-  )[];
-}
-
-let final: IFinal;
+let final: IResult;
 export async function generate(
   code: string,
   filename: string,
@@ -178,7 +162,6 @@ async function walk(
           }
         }
       }
-      console.log(depPath);
 
       let depContent = readFileSync(depPath).toString();
       depContent =
@@ -190,19 +173,6 @@ async function walk(
           isNodeModule
         )) || depContent;
       await walk(depContent, depPath, nodeModule, uri + ">" + depName, cb);
-    }
-  }
-}
-
-function locateNodeModules(file: string) {
-  for (let index = 0; index < 5; index++) {
-    let possiblePath = path.resolve(
-      path.dirname(file),
-      "../".repeat(index),
-      "node_modules"
-    );
-    if (existsSync(possiblePath)) {
-      return possiblePath;
     }
   }
 }
