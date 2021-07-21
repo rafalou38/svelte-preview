@@ -5,6 +5,7 @@ declare var acquireVsCodeApi: () => {
 };
 declare module "rollup-plugin-css-only";
 interface IResult {
+  startTime?: number;
   js: {
     [key: string]: string;
   };

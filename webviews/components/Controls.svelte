@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { config, vscode } from "./stores";
+  import { code, config, vscode } from "./stores";
 
   import Switch from "./Switch.svelte";
   function update() {
@@ -47,6 +47,12 @@
 		use rollup
 		<Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
 	</label>
+
+	{#if $code?.startTime}
+		 <p class="right">
+			 took <span>{(Date.now()- $code?.startTime) / 1000}</span>s
+		 </p>
+	{/if}
 </div>
 
 <style lang="scss">
@@ -69,4 +75,12 @@
     background-color: var(--vscode-input-background);
     border: none;
   }
+	.right{
+		margin-left: auto;
+		opacity: 0.7;
+		font-size: 1.2em;
+		span{
+			font-weight: bold;
+		}
+	}
 </style>

@@ -152,6 +152,7 @@ export class PreviewPanel {
   }
 
   private async sendCode() {
+    const startTime = Date.now();
     const { rollup: useRollup } = this.context?.workspaceState.get(
       "svelte-preview-config"
     ) || {
@@ -177,6 +178,7 @@ export class PreviewPanel {
         ".root"
       );
     }
+    result.startTime = startTime;
     this._panel.webview.postMessage({
       type: "codeUpdate",
       value: result,

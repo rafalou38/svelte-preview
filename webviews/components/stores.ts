@@ -8,6 +8,7 @@ export const code = writable<{
   };
   css: string;
   err: CompileError[];
+  startTime?: number;
 } | null>();
 
 export const config = writable({
