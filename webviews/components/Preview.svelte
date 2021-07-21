@@ -37,7 +37,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
     IBody.appendChild(appScript);
 
     const style = document.createElement("style");
-    style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}.root{height: max-content;width: max-content;}";
+    style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}";
     IBody.appendChild(style);
 
     applyConfig();
@@ -50,6 +50,9 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
       if (root) {
         IBody.style.display = $config.center ? "grid" : "";
         IBody.style.placeItems = "center";
+        root.style.width = $config.center ?`max-content` : "auto";
+        root.style.height = $config.center ?`max-content` : "auto";
+
 
         root.style.transform = `scale(${$config.zoom})`;
         root.style.transformOrigin = $config.center ? "" : `top left`;
