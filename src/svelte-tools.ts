@@ -107,7 +107,7 @@ async function transformModule(
     const result = await compile(content, modulePath, false, false);
 
     final.err = [...final.err, ...result.err];
-    final.js[name] = result.js;
+    final.js[uri] = result.js;
     final.css += result.css || "";
     return result.js;
   } else if (modulePath.endsWith(".js") || modulePath.endsWith(".mjs")) {
@@ -145,9 +145,14 @@ async function walk(
         if (!depPath.match(/\.\w+$/)) {
           if (existsSync(depPath + ".js")) {
             depPath += ".js";
-          }
-          if (existsSync(depPath + ".mjs")) {
+          } else if (existsSync(depPath + ".mjs")) {
             depPath += ".mjs";
+          } else {
+            const packageJsonPath = path.resolve(depPath, "package.json");
+            const packageJson = JSON.parse(
+              readFileSync(packageJsonPath).toString()
+            );
+            depPath = path.resolve(depPath, packageJson.module);
           }
         }
       } else {
@@ -166,10 +171,14 @@ async function walk(
             const packageJson = JSON.parse(
               readFileSync(packageJsonPath).toString()
             );
-            depPath = path.resolve(depPath, packageJson.module);
+            depPath = path.resolve(
+              depPath,
+              packageJson.module || packageJson.svelte
+            );
           }
         }
       }
+      console.log(depPath);
 
       let depContent = readFileSync(depPath).toString();
       depContent =
