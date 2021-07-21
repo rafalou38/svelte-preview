@@ -16,72 +16,88 @@ export async function generate(
   autoInsert = false,
   target = "body"
 ): Promise<IResult> {
-  // Find Node modules
-  const result: IResult = {
-    js: {},
-    css: "",
-    err: [],
-  };
-  if (!nodeModules) {
-    nodeModules = locateNodeModules(filename);
+  try {
+    // Find Node modules
+    const result: IResult = {
+      js: {},
+      css: "",
+      err: [],
+    };
     if (!nodeModules) {
-      return {
-        js: {},
-        css: "",
-        err: [
-          {
-            start: {
-              line: 0,
-              column: 0, //TODO show real position
+      nodeModules = locateNodeModules(filename);
+      if (!nodeModules) {
+        return {
+          js: {},
+          css: "",
+          err: [
+            {
+              start: {
+                line: 0,
+                column: 0, //TODO show real position
+              },
+              message: "node modules not found",
             },
-            message: "node modules not found",
-          },
-        ],
-      };
+          ],
+        };
+      }
     }
-  }
 
-  const inputOptions = {
-    input: filename,
-    plugins: [
-      // @ts-ignore
-      svelte({
-        preprocess: sveltePreprocess(),
-      }),
-      css(),
-      resolve.default({
-        browser: true,
-        dedupe: ["svelte"],
-        moduleDirectories: [nodeModules],
-      }),
-      // @ts-ignore
-      commonjs(),
-    ],
-  };
-  const bundle = await rollup(inputOptions);
+    const inputOptions = {
+      input: filename,
+      plugins: [
+        // @ts-ignore
+        svelte({
+          preprocess: sveltePreprocess(),
+        }),
+        css(),
+        resolve.default({
+          browser: true,
+          dedupe: ["svelte"],
+          moduleDirectories: [nodeModules],
+        }),
+        // @ts-ignore
+        commonjs(),
+      ],
+    };
+    const bundle = await rollup(inputOptions);
 
-  const { output } = await bundle.generate(outputOptions);
+    const { output } = await bundle.generate(outputOptions);
 
-  for (const chunkOrAsset of output) {
-    if (chunkOrAsset.type === "asset") {
-      result.css = chunkOrAsset.source.toString();
-    } else {
-      result.js[">./bundle.js"] = chunkOrAsset.code;
+    for (const chunkOrAsset of output) {
+      if (chunkOrAsset.type === "asset") {
+        result.css = chunkOrAsset.source.toString();
+      } else {
+        result.js[">./bundle.js"] = chunkOrAsset.code;
+      }
     }
-  }
 
-  if (autoInsert) {
-    // convert component export to global variable
-    result.js[""] = `
+    if (autoInsert) {
+      // convert component export to global variable
+      result.js[""] = `
 import App from "./bundle.js";
 
 new App({
 	target: document.querySelector("${target}")
 })
 		`;
+    }
+
+    await bundle.close();
+
+    return result;
+  } catch (e) {
+    return {
+      js: {},
+      css: "",
+      err: [
+        {
+          start: {
+            line: e.start?.line || e.line || 0,
+            column: e.start?.column || e.column || 0,
+          },
+          message: e.message,
+        },
+      ],
+    };
   }
-
-  await bundle.close();
-
-  return result;
 }
