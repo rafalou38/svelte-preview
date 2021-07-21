@@ -144,6 +144,7 @@ export class PreviewPanel {
     const result = await svelte.generate(
       this.document?.getText() || "",
       this.document?.fileName || "",
+      "",
       false,
       true,
       ".root"

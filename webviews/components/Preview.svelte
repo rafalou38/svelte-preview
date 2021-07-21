@@ -29,7 +29,6 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
     IBody.appendChild(root);
 		const mainModuleURI = transformModulesToBlobURLS($code.js)
 
-		console.log($code.js);
 
 
     const appScript = document.createElement("script");
