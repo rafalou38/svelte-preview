@@ -1,5 +1,7 @@
 <script lang="ts">
   import Controls from "./Controls.svelte";
+	import './global.css';
+	import Drawer from "./drawer/drawer.svelte"
 import { transformModulesToBlobURLS } from "./modulesHandler";
   import { code, config, vscode } from "./stores";
   if (!$code) {
@@ -9,7 +11,6 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
   let iframe: HTMLIFrameElement;
 
   $: if (iframe && $code) injectPreviewInIframe();
-
 
 	function dataUrl(content:string) {
 		return URL.createObjectURL(new Blob([content]))
@@ -78,6 +79,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
       {/each}
     </ul>
   {/if}
+	<Drawer></Drawer>
 </div>
 
 <style lang="scss">

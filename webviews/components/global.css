@@ -1,0 +1,4 @@
+html.dragging *:not(html, body) {
+  pointer-events: none;
+  user-select: none;
+}
