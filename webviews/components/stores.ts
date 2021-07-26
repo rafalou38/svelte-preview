@@ -81,7 +81,6 @@ window.addEventListener("message", (event) => {
 });
 
 function applySourceMap(caller: string) {
-  debugger;
   let internalsourceMap: {
     [key: string]: string;
   } = {};

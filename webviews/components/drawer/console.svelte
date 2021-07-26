@@ -1,5 +1,14 @@
 <script lang="ts">
-  import { log } from "../stores";
+  import { log, vscode } from "../stores";
+
+	function openFile(ref:string) {
+		const match = ref.match(/(?<=\()(.*?):(\d+:\d+)/)
+		if (!match) return;
+		$vscode?.postMessage({type: "reveal", value: {
+			file: match[1],
+			position: match[2]
+		}})
+	}
 </script>
 
 <div class="container">
@@ -21,7 +30,7 @@
 					{/if}
 				</div>
 				{#if message.caller}
-					 <a href={message.caller} class="src-link" title={message.caller}>
+					 <a href={message.caller} on:click={()=>message.caller && openFile(message.caller)} class="src-link" title={message.caller}>
 						 {message.caller}
 					 </a>
 				{/if}

@@ -107,6 +107,13 @@ export class PreviewPanel {
           }
           break;
         }
+        case "reveal": {
+          const document = await vscode.workspace.openTextDocument(
+            data.value.file
+          );
+          await vscode.window.showTextDocument(document);
+          break;
+        }
         case "onInfo": {
           if (!data.value) {
             return;
