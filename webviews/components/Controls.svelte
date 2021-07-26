@@ -13,18 +13,18 @@
     <Switch id="center" on:change={update} bind:checked={$config.center} />
   </label>
   <label for="background">
-		background
+    background
     <Switch
-		id="background"
-		on:change={update}
-		bind:checked={$config.activeBg}
+      id="background"
+      on:change={update}
+      bind:checked={$config.activeBg}
     />
     {#if $config.activeBg}
-		<input type="color" on:change={update} bind:value={$config.bg} />
+      <input type="color" on:change={update} bind:value={$config.bg} />
     {/if}
   </label>
   <label for="zoom">
-		zoom
+    zoom
     <select name="zoom" on:blur={update} id="zoom" bind:value={$config.zoom}>
       <option value="0.5">0.5x</option>
       <option value="1">1x</option>
@@ -43,20 +43,20 @@
       <option value="12">12x</option>
     </select>
   </label>
-	<label for="rollup">
-		use rollup
-		<Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
-	</label>
+  <label for="rollup">
+    use rollup
+    <Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
+  </label>
 
-	{#if $code?.startTime}
-		 <p class="right">
-			 took <span>{(Date.now()- $code?.startTime) / 1000}</span>s
-		 </p>
-	{/if}
+  {#if $code?.startTime}
+    <p class="right">
+      took <span>{(Date.now() - $code?.startTime) / 1000}</span>s
+    </p>
+  {/if}
 </div>
 
 <style lang="scss">
-	label {
+  label {
     margin: 0 1.5em;
     display: flex;
     // flex-direction: column;
@@ -75,12 +75,12 @@
     background-color: var(--vscode-input-background);
     border: none;
   }
-	.right{
-		margin-left: auto;
-		opacity: 0.7;
-		font-size: 1.2em;
-		span{
-			font-weight: bold;
-		}
-	}
+  .right {
+    margin-left: auto;
+    opacity: 0.7;
+    font-size: 1.2em;
+    span {
+      font-weight: bold;
+    }
+  }
 </style>

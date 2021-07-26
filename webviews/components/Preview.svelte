@@ -1,8 +1,8 @@
 <script lang="ts">
   import Controls from "./Controls.svelte";
-	import './global.css';
-	import Drawer from "./drawer/drawer.svelte"
-import { transformModulesToBlobURLS } from "./modulesHandler";
+  import "./global.css";
+  import Drawer from "./drawer/drawer.svelte";
+  import { transformModulesToBlobURLS } from "./modulesHandler";
   import { code, config, InternalsourceMap, vscode } from "./stores";
   if (!$code) {
     $vscode?.postMessage({ type: "actualize", value: "" });
@@ -12,9 +12,9 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 
   $: if (iframe && $code) injectPreviewInIframe();
 
-	function dataUrl(content:string) {
-		return URL.createObjectURL(new Blob([content]))
-	}
+  function dataUrl(content: string) {
+    return URL.createObjectURL(new Blob([content]));
+  }
   async function injectPreviewInIframe() {
     iframe.contentWindow?.location.reload();
 
@@ -28,15 +28,15 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
     const root = document.createElement("div");
     root.className = "root";
     IBody.appendChild(root);
-		const {mainModuleURI, sourceMap} = transformModulesToBlobURLS($code.js)
-		InternalsourceMap.set(sourceMap)
+    const { mainModuleURI, sourceMap } = transformModulesToBlobURLS($code.js);
+    InternalsourceMap.set(sourceMap);
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");
-		appScript.setAttribute("src", mainModuleURI)
+    appScript.setAttribute("src", mainModuleURI);
     IBody.appendChild(appScript);
 
     const consoleScript = document.createElement("script");
-		consoleScript.innerHTML = `
+    consoleScript.innerHTML = `
 		function logger(level){
 			return function(){
 				const e = new Error();
@@ -57,11 +57,13 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 		window.console.error = logger("error")
 		window.console.warn = logger("warn")
 		window.onerror = logger("error")
-		`
+		`;
     IBody.appendChild(consoleScript);
 
     const style = document.createElement("style");
-    style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}" + $code.css;
+    style.innerHTML =
+      "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}" +
+      $code.css;
     IBody.appendChild(style);
 
     applyConfig();
@@ -74,9 +76,8 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
       if (root) {
         IBody.style.display = $config.center ? "grid" : "";
         IBody.style.placeItems = "center";
-        root.style.width = $config.center ?`max-content` : "auto";
-        root.style.height = $config.center ?`max-content` : "auto";
-
+        root.style.width = $config.center ? `max-content` : "auto";
+        root.style.height = $config.center ? `max-content` : "auto";
 
         root.style.transform = `scale(${$config.zoom})`;
         root.style.transformOrigin = $config.center ? "" : `top left`;
@@ -92,7 +93,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 <div class="wrapper">
   <Controls />
   <iframe title="preview" bind:this={iframe} />
-	<Drawer></Drawer>
+  <Drawer />
 </div>
 
 <style lang="scss">
