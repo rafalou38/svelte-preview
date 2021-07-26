@@ -2,7 +2,7 @@
 	import Console from './console.svelte'
 
 	let dragging = false;
-	let height = 100;
+	let height = 300;
 	let current: "console"| "errors"|"infos"  = "console";
 	function handleMovement(e:MouseEvent & { currentTarget: EventTarget & HTMLElement; }) {
 		if (!dragging) return;
@@ -48,6 +48,8 @@
 		border-top: 1px solid var(--vscode-panel-border);
 		box-sizing: border-box;
 		position: relative;
+		display: flex;
+		flex-direction: column;
 	}
 	$handle-height: 6px;
 	.handle{
@@ -71,6 +73,8 @@
     height: 35px;
     width: 100%;
     align-items: center;
+		flex-grow: 0;
+		flex-shrink: 0;
 
 		li.tab{
 			box-sizing: border-box;

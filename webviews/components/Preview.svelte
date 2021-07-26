@@ -32,10 +32,34 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 
 
 
+
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");
 		appScript.setAttribute("src", mainModuleURI)
     IBody.appendChild(appScript);
+
+    const consoleScript = document.createElement("script");
+		consoleScript.innerHTML = `
+		function logger(level){
+			return function(){
+				const e = new Error();
+				const caller = e.stack.split(/\\r\\n|\\n/)[2]?.trim().match(/(?<=\\().*(?=\\))/)[0];
+				window.parent.postMessage(
+					{
+						type: 'iframeLog',
+						message: [...arguments],
+						level: level,
+						caller
+					},
+					"*"
+				);
+			}
+		}
+		window.console.log = logger("info")
+		window.console.warn = logger("warn")
+		window.onerror = logger("error")
+		`
+    IBody.appendChild(consoleScript);
 
     const style = document.createElement("style");
     style.innerHTML = "body{margin:0;height: 100vh;padding: 8px;box-sizing: border-box;}" + $code.css;

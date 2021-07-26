@@ -19,6 +19,15 @@ export const config = writable({
   rollup: false,
 });
 
+export const log = writable<
+  {
+    message: any[];
+    level: "info" | "warn" | "error" | "debug" | "trace";
+    count: number;
+    caller?: string;
+  }[]
+>([]);
+
 window.addEventListener("message", (event) => {
   if (!event.origin.startsWith("vscode-webview://"))
     return console.warn("wrong origin: " + event.origin);
@@ -29,6 +38,24 @@ window.addEventListener("message", (event) => {
       break;
     case "setConfig":
       config.set(event.data.value);
+      break;
+    case "iframeLog":
+      log.update((oldLog) => {
+        if (oldLog[oldLog.length - 1]?.message === event.data.message) {
+          oldLog[oldLog.length - 1].count += 1;
+          return oldLog;
+        }
+
+        return [
+          ...oldLog,
+          {
+            message: event.data.message,
+            level: event.data.level,
+            count: 1,
+            caller: event.data.caller,
+          },
+        ];
+      });
       break;
 
     default:
