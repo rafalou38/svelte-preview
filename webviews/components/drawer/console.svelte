@@ -9,12 +9,16 @@
 			position: match[2]
 		}})
 	}
+
+	function autoScroll(elem: HTMLLIElement, params: ScrollIntoViewOptions){
+		elem.scrollIntoView(params)
+	}
 </script>
 
 <div class="container">
   <ul>
     {#each $log as message}
-      <li>
+      <li use:autoScroll={{behavior: "smooth"}}>
         <div class="left">
 					{#if message.count > 1}
 						<span class="count">{message.count}</span>
