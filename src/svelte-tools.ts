@@ -13,6 +13,7 @@ import { existsSync, readFileSync } from "fs";
 import { ExtensionContext } from "vscode";
 import { locateNodeModules } from "./utils";
 import { IResult } from "./ambient";
+import ts from "typescript";
 
 let svelteCode = "";
 
@@ -103,6 +104,13 @@ async function transformModule(
   } else if (modulePath.endsWith(".js") || modulePath.endsWith(".mjs")) {
     final.js[uri] = content;
     return content;
+  } else if (modulePath.endsWith(".ts")) {
+    const js = ts.transpileModule(content, {
+      compilerOptions: { module: 6, target: 1, strict: false },
+    });
+    console.log(js);
+
+    final.js[uri] = js.outputText;
   }
 }
 
@@ -137,6 +145,8 @@ async function walk(
             depPath += ".js";
           } else if (existsSync(depPath + ".mjs")) {
             depPath += ".mjs";
+          } else if (existsSync(depPath + ".ts")) {
+            depPath += ".ts";
           } else {
             const packageJsonPath = path.resolve(depPath, "package.json");
             const packageJson = JSON.parse(

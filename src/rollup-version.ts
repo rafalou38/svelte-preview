@@ -1,8 +1,8 @@
 import { rollup } from "rollup";
-import * as svelte from "rollup-plugin-svelte";
+import svelte from "rollup-plugin-svelte";
 const css = require("rollup-plugin-css-only");
 import * as resolve from "@rollup/plugin-node-resolve";
-import * as commonjs from "@rollup/plugin-commonjs";
+import commonjs from "@rollup/plugin-commonjs";
 const sveltePreprocess = require("svelte-preprocess");
 import { locateNodeModules } from "./utils";
 import { IResult } from "./ambient";
