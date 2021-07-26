@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Console from './console.svelte'
+	import Errors from './errors.svelte'
 
 	let dragging = false;
 	let height = 300;
@@ -36,7 +37,7 @@
 	{#if current == "console"}
 		<Console></Console>
 	{:else if  current == "errors"}
-		 <!-- else if content here -->
+		<Errors></Errors>
 	{:else if  current == "infos"}
 		 <!-- else if content here -->
 	{/if}

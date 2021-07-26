@@ -90,16 +90,6 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 <div class="wrapper">
   <Controls />
   <iframe title="preview" bind:this={iframe} />
-  {#if $code?.err}
-    <ul class="errors">
-      {#each $code?.err as error}
-        <li class="error">
-          <span class="msg">{error.message}</span>
-          <span>({error.start.line}:{error.start.column})</span>
-        </li>
-      {/each}
-    </ul>
-  {/if}
 	<Drawer></Drawer>
 </div>
 
@@ -125,30 +115,5 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
   iframe {
     flex-grow: 1;
     border: none;
-  }
-  .errors {
-    border-radius: 1rem 1rem 0 0;
-    background: var(--vscode-editorError-foreground);
-    color: white;
-    margin: 0 1rem;
-    padding: 0;
-  }
-  .error {
-    margin: 0;
-    padding: 2rem;
-    list-style: none;
-    display: flex;
-    justify-content: space-between;
-    & + & {
-      border-top: 3px solid #00000012;
-    }
-    span {
-      font-size: 20px;
-    }
-		.msg{
-			max-width: 80%;
-			white-space: pre-wrap;
-			font-family: var(--vscode-editor-font-family);
-		}
   }
 </style>
