@@ -11,7 +11,7 @@
     e: MouseEvent & { currentTarget: EventTarget & HTMLElement }
   ) {
     if (!dragging) return;
-    height = height - e.movementY * 1.5;
+    height = height - e.movementY;
   }
 
   $: {
@@ -61,7 +61,7 @@
     >
       errors
     </li>
-    {#if $code?.err.length != 0}
+    {#if ($code?.err?.length || 0) > 0}
       <div class="count">{$code?.err.length}</div>
     {/if}
     <li
