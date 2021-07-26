@@ -3,6 +3,7 @@ import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
 import * as rollup from "./rollup-version";
 import * as path from "path";
+import { IResult } from "./ambient";
 
 export class PreviewPanel {
   public static panels = new Map<string, PreviewPanel>();

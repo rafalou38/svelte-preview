@@ -1,9 +1,10 @@
+import { Warning } from "svelte/types/compiler/interfaces";
+
 declare var acquireVsCodeApi: () => {
   getState: () => any;
   postMessage: (msg: any) => void;
   setState: (newState: any) => void;
 };
-declare module "rollup-plugin-css-only";
 interface IResult {
   startTime?: number;
   js: {

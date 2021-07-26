@@ -1,1 +1,0 @@
-const tsVscode = acquireVsCodeApi();

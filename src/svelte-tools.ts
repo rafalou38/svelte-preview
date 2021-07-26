@@ -10,9 +10,9 @@ import {
   typescript,
 } from "svelte-preprocess";
 import { existsSync, readFileSync } from "fs";
-import { Warning } from "svelte/types/compiler/interfaces";
 import { ExtensionContext } from "vscode";
 import { locateNodeModules } from "./utils";
+import { IResult } from "./ambient";
 
 let svelteCode = "";
 

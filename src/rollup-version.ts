@@ -1,11 +1,11 @@
 import { rollup } from "rollup";
 import * as svelte from "rollup-plugin-svelte";
-import * as css from "rollup-plugin-css-only";
+const css = require("rollup-plugin-css-only");
 import * as resolve from "@rollup/plugin-node-resolve";
 import * as commonjs from "@rollup/plugin-commonjs";
-import * as sveltePreprocess from "svelte-preprocess";
-import typescript from "@rollup/plugin-typescript";
+const sveltePreprocess = require("svelte-preprocess");
 import { locateNodeModules } from "./utils";
+import { IResult } from "./ambient";
 const outputOptions = {};
 
 export async function generate(
@@ -22,6 +22,7 @@ export async function generate(
       js: {},
       css: "",
       err: [],
+      sourceMap: {},
     };
     if (!nodeModules) {
       nodeModules = locateNodeModules(filename);
@@ -99,6 +100,7 @@ new App({
           message: e.message,
         },
       ],
+      sourceMap: {},
     };
   }
 }
