@@ -64,13 +64,6 @@
     {#if ($code?.err?.length || 0) > 0}
       <div class="count">{$code?.err.length}</div>
     {/if}
-    <li
-      class="tab"
-      class:active={current == "infos"}
-      on:click={() => (current = "infos")}
-    >
-      infos
-    </li>
     <div class="right">
       {#if current === "console"}
         <button

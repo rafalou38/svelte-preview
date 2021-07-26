@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import * as path from "path";
 import * as svelte from "svelte/compiler";
 import {
@@ -10,7 +11,6 @@ import {
   typescript,
 } from "svelte-preprocess";
 import { existsSync, readFileSync } from "fs";
-import { ExtensionContext } from "vscode";
 import { locateNodeModules } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
@@ -178,8 +178,15 @@ async function walk(
           }
         }
       }
-
-      let depContent = readFileSync(depPath).toString();
+      const openDoc = vscode.workspace.textDocuments.find(
+        (doc) => doc.fileName === depPath
+      );
+      let depContent;
+      if (openDoc) {
+        depContent = openDoc.getText();
+      } else {
+        depContent = readFileSync(depPath).toString();
+      }
       depContent =
         (await cb(
           depContent,
@@ -193,7 +200,7 @@ async function walk(
   }
 }
 
-export function loadSvelteCode(context: ExtensionContext) {
+export function loadSvelteCode(context: vscode.ExtensionContext) {
   const filepath = path.join(
     context?.extensionPath || "",
     "media",

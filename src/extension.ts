@@ -11,7 +11,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
   vscode.workspace.onDidChangeTextDocument(({ contentChanges, document }) => {
-    if (document.fileName.endsWith(".svelte")) {
+    if (
+      document.fileName.endsWith(".svelte") ||
+      document.fileName.endsWith(".js") ||
+      document.fileName.endsWith(".ts")
+    ) {
       const { rollup: useRollup } = context.workspaceState.get(
         "svelte-preview-config",
         {
@@ -19,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
       );
       if (useRollup) return;
-      PreviewPanel.panels.get(document.fileName)?.update();
+      PreviewPanel.panels.forEach((e) => e.update());
     }
   });
   context.subscriptions.push(
