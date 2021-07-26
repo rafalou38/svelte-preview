@@ -7,8 +7,6 @@ export function transformModulesToBlobURLS(js: { [key: string]: string }) {
   const mainModule = js[""];
   const mainModuleURI = parse(mainModule, js, "");
   sourceMap[mainModuleURI] = "";
-  console.log(sourceMap);
-
   return {
     mainModuleURI,
     sourceMap,

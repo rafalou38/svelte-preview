@@ -108,8 +108,6 @@ async function transformModule(
     const js = ts.transpileModule(content, {
       compilerOptions: { module: 6, target: 1, strict: false },
     });
-    console.log(js);
-
     final.js[uri] = js.outputText;
   }
 }

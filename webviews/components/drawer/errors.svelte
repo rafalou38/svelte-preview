@@ -59,8 +59,6 @@
     padding: 0;
   }
   li {
-    // display: flex;
-    // justify-content: space-between;
     list-style: none;
     padding: 2px;
     padding-left: 30px;
