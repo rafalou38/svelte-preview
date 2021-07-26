@@ -1,4 +1,6 @@
 <script lang="ts">
+import { code, log } from '../stores';
+
 	import Console from './console.svelte'
 	import Errors from './errors.svelte'
 
@@ -31,7 +33,13 @@
 	<div class="handle" class:dragging on:mousedown={()=>{dragging = true}}></div>
 	<ul class="tabs">
 		<li class="tab" class:active={current == "console"} on:click={()=>current = "console"}>console</li>
+		{#if $log.length > 0}
+			<div class="count">{$log.length}</div>
+		{/if}
 		<li class="tab" class:active={current == "errors"} on:click={()=>current = "errors"}>errors</li>
+		{#if $code?.err.length != 0}
+			<div class="count">{$code?.err.length}</div>
+		{/if}
 		<li class="tab" class:active={current == "infos"} on:click={()=>current = "infos"}>infos</li>
 	</ul>
 	{#if current == "console"}
@@ -80,7 +88,7 @@
 		li.tab{
 			box-sizing: border-box;
 			cursor: pointer;
-			margin: 0 10px;
+			margin: 0 0 0 20px;
 			padding: 4px 10px 3px;
 			list-style: none;
 			display: grid;
@@ -100,5 +108,19 @@
 			}
 		}
 	}
-
+	.count {
+      font-family: var(--vscode-repl-font-family);
+      padding: 3px 6px;
+      border-radius: 11px;
+      font-size: 11px;
+      min-width: 18px;
+      min-height: 16px;
+      line-height: 11px;
+      font-weight: 400;
+      text-align: center;
+      display: inline-block;
+      box-sizing: border-box;
+      background-color: var(--vscode-badge-background);
+      color: var(--vscode-badge-foreground);
+    }
 </style>
