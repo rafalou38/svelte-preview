@@ -72,6 +72,7 @@
       opacity: 0.6;
     }
     .message {
+      white-space: pre-wrap;
       font-family: var(--vscode-repl-font-family);
       font-size: var(--vscode-repl-font-size);
       line-height: var(--vscode-repl-line-height);
