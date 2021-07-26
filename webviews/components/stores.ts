@@ -29,6 +29,8 @@ export const config = writable({
   rollup: false,
 });
 
+export const locked = writable(true);
+
 export const log = writable<
   {
     message: any[];
@@ -50,6 +52,9 @@ window.addEventListener("message", (event) => {
       break;
     case "setConfig":
       config.set(event.data.value);
+      break;
+    case "setLock":
+      locked.set(event.data.value);
       break;
     case "iframeLog":
       log.update((oldLog) => {

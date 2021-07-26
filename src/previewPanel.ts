@@ -18,6 +18,8 @@ export class PreviewPanel {
 
   private context: vscode.ExtensionContext | undefined;
 
+  public locked = true;
+
   public static createOrShow(
     extensionUri: vscode.Uri,
     context: vscode.ExtensionContext
@@ -58,6 +60,17 @@ export class PreviewPanel {
     } else {
       console.log("no file opened or not .svelte: ", currentFile);
     }
+  }
+
+  setCurrentDocument(document: vscode.TextDocument | undefined) {
+    if (!document?.fileName || this.document?.fileName === document.fileName)
+      return;
+    this._panel.reveal(vscode.ViewColumn.Beside);
+    this._panel.title = path.basename(document?.fileName) + " - preview";
+    this.document = document;
+    const webview = this._panel.webview;
+    webview.html = this._getHtmlForWebview(webview);
+    this._update();
   }
 
   public static kill() {
@@ -106,6 +119,10 @@ export class PreviewPanel {
           if (oldRollup !== data.value.rollup) {
             this.update();
           }
+          break;
+        }
+        case "updateLock": {
+          this.locked = data.value;
           break;
         }
         case "reveal": {
@@ -202,6 +219,10 @@ export class PreviewPanel {
     this._panel.webview.postMessage({
       type: "setConfig",
       value: config,
+    });
+    this._panel.webview.postMessage({
+      type: "setLock",
+      value: this.locked,
     });
   }
   private async _update() {

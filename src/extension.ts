@@ -5,6 +5,17 @@ import { loadSvelteCode } from "./svelte-tools";
 export function activate(context: vscode.ExtensionContext) {
   loadSvelteCode(context);
 
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    const document = editor?.document;
+    if (document?.fileName.endsWith(".svelte")) {
+      PreviewPanel.panels.forEach((panel) => {
+        if (!panel.locked) {
+          panel.setCurrentDocument(document);
+        }
+      });
+    }
+  });
+
   vscode.workspace.onDidSaveTextDocument((document) => {
     if (document.fileName.endsWith(".svelte")) {
       PreviewPanel.panels.get(document.fileName)?.update();

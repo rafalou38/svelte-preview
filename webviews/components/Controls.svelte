@@ -1,13 +1,20 @@
 <script lang="ts">
-  import { code, config, vscode } from "./stores";
+  import { code, config, locked, vscode } from "./stores";
 
   import Switch from "./Switch.svelte";
   function update() {
     $vscode?.postMessage({ type: "editConfig", value: $config });
   }
+	function updateLock(e: Event) {
+		$vscode?.postMessage({ type: "updateLock", value: $locked });
+	}
 </script>
 
 <div class="controls">
+  <label for="lock">
+    lock
+    <Switch id="lock" on:change={updateLock} bind:checked={$locked}/>
+  </label>
   <label for="center">
     center
     <Switch id="center" on:change={update} bind:checked={$config.center} />
