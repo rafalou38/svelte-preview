@@ -3,7 +3,7 @@
 	import './global.css';
 	import Drawer from "./drawer/drawer.svelte"
 import { transformModulesToBlobURLS } from "./modulesHandler";
-  import { code, config, vscode } from "./stores";
+  import { code, config, InternalsourceMap, vscode } from "./stores";
   if (!$code) {
     $vscode?.postMessage({ type: "actualize", value: "" });
   }
@@ -28,11 +28,8 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
     const root = document.createElement("div");
     root.className = "root";
     IBody.appendChild(root);
-		const mainModuleURI = transformModulesToBlobURLS($code.js)
-
-
-
-
+		const {mainModuleURI, sourceMap} = transformModulesToBlobURLS($code.js)
+		InternalsourceMap.set(sourceMap)
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");
 		appScript.setAttribute("src", mainModuleURI)
@@ -43,7 +40,7 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 		function logger(level){
 			return function(){
 				const e = new Error();
-				const caller = e.stack.split(/\\r\\n|\\n/)[2]?.trim().match(/(?<=\\().*(?=\\))/)[0];
+				const caller = e.stack.split(/\\r\\n|\\n/)[2]?.trim();
 				window.parent.postMessage(
 					{
 						type: 'iframeLog',

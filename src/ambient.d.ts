@@ -20,4 +20,7 @@ interface IResult {
         message: any;
       }
   )[];
+  sourceMap: {
+    [key: string]: string;
+  };
 }

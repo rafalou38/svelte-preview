@@ -38,6 +38,7 @@ export async function generate(
               message: "node modules not found",
             },
           ],
+          sourceMap: {}, //TODO
         };
       }
     }

@@ -34,11 +34,12 @@ export async function generate(
   removeImports = false,
   autoInsert = false,
   target = "body"
-) {
+): Promise<IResult> {
   final = {
     js: {},
     css: "",
     err: [],
+    sourceMap: {},
   };
 
   const result = await compile(
@@ -49,9 +50,12 @@ export async function generate(
     target
   );
 
-  if (result.err.length !== 0) return { js: {}, css: "", err: result.err };
+  if (result.err.length !== 0)
+    return { js: {}, css: "", err: result.err, sourceMap: {} };
 
+  final.sourceMap[""] = filename;
   final.js[""] = result.js;
+  final.sourceMap[">svelte/internal"] = "svelte/internal";
   final.js[">svelte/internal"] = svelteCode;
   final.css += result.css || "";
 
@@ -71,6 +75,7 @@ export async function generate(
             message: "node modules not found",
           },
         ],
+        sourceMap: {},
       };
     }
   }
@@ -87,6 +92,7 @@ async function transformModule(
   uri: string,
   isNodeModule: boolean
 ) {
+  final.sourceMap[uri] = modulePath;
   if (modulePath.endsWith(".svelte")) {
     const result = await compile(content, modulePath, false, false);
 

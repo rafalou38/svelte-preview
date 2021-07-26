@@ -11,6 +11,16 @@ export const code = writable<{
   startTime?: number;
 } | null>();
 
+export const InternalsourceMap = writable<{
+  [key: string]: string;
+}>({});
+export const sourceMap = writable<{
+  [key: string]: string;
+}>({});
+let sourceMapValue: {
+  [key: string]: string;
+};
+
 export const config = writable({
   center: false,
   activeBg: false,
@@ -35,6 +45,8 @@ window.addEventListener("message", (event) => {
   switch (event.data.type) {
     case "codeUpdate":
       code.set(event.data.value);
+      sourceMap.set(event.data.value.sourceMap);
+      sourceMapValue = event.data.value.sourceMap;
       break;
     case "setConfig":
       config.set(event.data.value);
@@ -45,6 +57,11 @@ window.addEventListener("message", (event) => {
           oldLog[oldLog.length - 1].count += 1;
           return oldLog;
         }
+        if (event.data.level === "error") {
+          event.data.message[4].stack = applySourceMap(
+            event.data.message[4].stack
+          );
+        }
 
         return [
           ...oldLog,
@@ -52,7 +69,7 @@ window.addEventListener("message", (event) => {
             message: event.data.message,
             level: event.data.level,
             count: 1,
-            caller: event.data.caller,
+            caller: event.data.caller && applySourceMap(event.data.caller),
           },
         ];
       });
@@ -62,3 +79,24 @@ window.addEventListener("message", (event) => {
       break;
   }
 });
+
+function applySourceMap(caller: string) {
+  debugger;
+  let internalsourceMap: {
+    [key: string]: string;
+  } = {};
+  InternalsourceMap.update((s) => {
+    internalsourceMap = s;
+    return s;
+  });
+  const regex = /blob:vscode-webview:.*?(?=:)/;
+  while (1) {
+    const match = regex.exec(caller);
+    if (!match) break;
+    const baseUri = match[0] || "";
+    let uri = internalsourceMap[baseUri];
+    uri = sourceMapValue[uri || ""];
+    caller = caller.replace(baseUri, uri);
+  }
+  return caller;
+}
