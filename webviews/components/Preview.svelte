@@ -53,6 +53,8 @@ import { transformModulesToBlobURLS } from "./modulesHandler";
 			}
 		}
 		window.console.log = logger("info")
+		window.console.info = logger("info")
+		window.console.error = logger("error")
 		window.console.warn = logger("warn")
 		window.onerror = logger("error")
 		`

@@ -81,21 +81,23 @@ window.addEventListener("message", (event) => {
 });
 
 function applySourceMap(caller: string) {
-  let internalsourceMap: {
-    [key: string]: string;
-  } = {};
-  InternalsourceMap.update((s) => {
-    internalsourceMap = s;
-    return s;
-  });
-  const regex = /blob:vscode-webview:.*?(?=:)/;
-  while (1) {
-    const match = regex.exec(caller);
-    if (!match) break;
-    const baseUri = match[0] || "";
-    let uri = internalsourceMap[baseUri];
-    uri = sourceMapValue[uri || ""];
-    caller = caller.replace(baseUri, uri);
-  }
+  try {
+    let internalsourceMap: {
+      [key: string]: string;
+    } = {};
+    InternalsourceMap.update((s) => {
+      internalsourceMap = s;
+      return s;
+    });
+    const regex = /blob:vscode-webview:.*?(?=:)/;
+    while (1) {
+      const match = regex.exec(caller);
+      if (!match) break;
+      const baseUri = match[0] || "";
+      let uri = internalsourceMap[baseUri];
+      uri = sourceMapValue[uri || ""];
+      caller = caller.replace(baseUri, uri);
+    }
+  } catch (error) {}
   return caller;
 }
