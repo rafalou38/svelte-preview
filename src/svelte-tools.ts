@@ -14,6 +14,8 @@ import { existsSync, readFileSync } from "fs";
 import { locateNodeModules } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
+import JSON5 from "json5";
+const globToRegExp = require("glob-to-regexp");
 
 let svelteCode = "";
 
@@ -154,25 +156,30 @@ async function walk(
           }
         }
       } else {
-        if (!depPath.match(/\.\w+$/)) {
-          depPath = path.resolve(nodeModule, depName);
-          isNodeModule = true;
-        }
+        const alias = check_aliases(depName, filePath);
+        if (alias) {
+          depPath = alias;
+        } else {
+          if (!depPath.match(/\.\w+$/)) {
+            depPath = path.resolve(nodeModule, depName);
+            isNodeModule = true;
+          }
 
-        if (!depPath.includes(".")) {
-          if (existsSync(depPath + ".js")) {
-            depPath += ".js";
-          } else if (existsSync(depPath + ".mjs")) {
-            depPath += ".mjs";
-          } else {
-            const packageJsonPath = path.resolve(depPath, "package.json");
-            const packageJson = JSON.parse(
-              readFileSync(packageJsonPath).toString()
-            );
-            depPath = path.resolve(
-              depPath,
-              packageJson.module || packageJson.svelte
-            );
+          if (!depPath.includes(".")) {
+            if (existsSync(depPath + ".js")) {
+              depPath += ".js";
+            } else if (existsSync(depPath + ".mjs")) {
+              depPath += ".mjs";
+            } else {
+              const packageJsonPath = path.resolve(depPath, "package.json");
+              const packageJson = JSON.parse(
+                readFileSync(packageJsonPath).toString()
+              );
+              depPath = path.resolve(
+                depPath,
+                packageJson.module || packageJson.svelte
+              );
+            }
           }
         }
       }
@@ -196,6 +203,48 @@ async function walk(
       await walk(depContent, depPath, nodeModule, uri + ">" + depName, cb);
     }
   }
+}
+
+function check_aliases(alias: string, modulePath: string) {
+  const nodeModules = locateNodeModules(modulePath);
+  if (!nodeModules) return;
+
+  const tsconfigPath = path.join(path.dirname(nodeModules), "tsconfig.json");
+  if (!existsSync(tsconfigPath)) return;
+
+  const tsconfig = JSON5.parse(readFileSync(tsconfigPath).toString());
+  const aliases = tsconfig?.compilerOptions?.paths as {
+    [key: string]: string[];
+  };
+  let final = "";
+  Object.entries(aliases).forEach(([pattern, paths]) => {
+    if (alias.match(globToRegExp(pattern))) {
+      const importPatern = pattern;
+      paths.forEach((e) => {
+        let resultPath = alias.replace(
+          importPatern.replace("*", ""),
+          e.replace("*", "")
+        );
+        resultPath = path.resolve(
+          path.dirname(tsconfigPath),
+          tsconfig.baseUrl || ".",
+          resultPath
+        );
+        if (existsSync(resultPath)) {
+          final = resultPath;
+        } else if (existsSync(resultPath + ".js")) {
+          final = resultPath + ".js";
+        } else if (existsSync(resultPath + ".cjs")) {
+          final = resultPath + ".cjs";
+        } else if (existsSync(resultPath + ".ts")) {
+          final = resultPath + ".ts";
+        } else if (existsSync(resultPath + ".svelte")) {
+          final = resultPath + ".svelte";
+        }
+      });
+    }
+  });
+  return final;
 }
 
 export function loadSvelteCode(context: vscode.ExtensionContext) {
