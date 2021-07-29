@@ -164,22 +164,29 @@ async function walk(
             depPath = path.resolve(nodeModule, depName);
             isNodeModule = true;
           }
-
-          if (!depPath.includes(".")) {
-            if (existsSync(depPath + ".js")) {
-              depPath += ".js";
-            } else if (existsSync(depPath + ".mjs")) {
-              depPath += ".mjs";
-            } else {
-              const packageJsonPath = path.resolve(depPath, "package.json");
-              const packageJson = JSON.parse(
-                readFileSync(packageJsonPath).toString()
-              );
-              depPath = path.resolve(
-                depPath,
-                packageJson.module || packageJson.svelte
-              );
-            }
+        }
+        if (!depPath.includes(".")) {
+          if (existsSync(depPath + ".js")) {
+            depPath += ".js";
+          } else if (existsSync(depPath + ".ts")) {
+            depPath += ".ts";
+          } else if (existsSync(path.resolve(depPath, "package.json"))) {
+            const packageJsonPath = path.resolve(depPath, "package.json");
+            const packageJson = JSON.parse(
+              readFileSync(packageJsonPath).toString()
+            );
+            depPath = path.resolve(
+              depPath,
+              packageJson.module || packageJson.svelte
+            );
+          } else if (existsSync(depPath + ".mjs")) {
+            depPath += ".mjs";
+          } else if (existsSync(path.resolve(depPath, "index.js"))) {
+            depPath = path.resolve(depPath, "index.js");
+          } else if (existsSync(path.resolve(depPath, "index.ts"))) {
+            depPath = path.resolve(depPath, "index.ts");
+          } else {
+            // TODO: not found error
           }
         }
       }
