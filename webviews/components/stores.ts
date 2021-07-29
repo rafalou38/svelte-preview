@@ -58,7 +58,10 @@ window.addEventListener("message", (event) => {
       break;
     case "iframeLog":
       log.update((oldLog) => {
-        if (oldLog[oldLog.length - 1]?.message === event.data.message) {
+        if (
+          oldLog[oldLog.length - 1]?.message.toString?.() ===
+          event.data.message.toString?.()
+        ) {
           oldLog[oldLog.length - 1].count += 1;
           return oldLog;
         }

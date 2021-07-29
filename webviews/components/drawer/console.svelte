@@ -16,12 +16,14 @@
   function autoScroll(elem: HTMLLIElement, params: ScrollIntoViewOptions) {
     elem.scrollIntoView(params);
   }
+	let behavior: ScrollBehavior  = "auto";
+	setTimeout(()=>{behavior = "smooth"}, 100);
 </script>
 
 <div class="container">
   <ul>
-    {#each $log as message}
-      <li use:autoScroll={{ behavior: "smooth" }}>
+    {#each $log as message, i}
+      <li use:autoScroll={{ behavior }}>
         <div class="left">
           {#if message.count > 1}
             <span class="count">{message.count}</span>
