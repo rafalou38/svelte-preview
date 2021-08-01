@@ -15,3 +15,25 @@
   - sass
   - stylus
 - editor icon is the same as the extension icon
+
+## [2.0.0]
+
+- Add support for imports:
+  - svelte files
+  - node modules
+  - scripts
+    - typescript
+    - javascript
+  - parse tsconfig for paths aliases
+    - ex: `$lib` `$app`
+  - option to chose between custom dependencies parser and rollup
+- fix styling issues
+  - body not full width when not centered
+- Add counter for compilation duration
+- Add bottom drawer with:
+  - **CONSOLE**
+    - auto scroll
+    - clear button
+    - object view
+  - more compact errors
+- Add option to unlock and preview the curently focused file

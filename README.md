@@ -8,23 +8,32 @@ Svelte-preview is a vscode extension to preview your svelte components live
 
 ### Live preview of svelte files
 
-![live preview](images/live.gif)
+![live preview](images/2.0.0/live%20preview.gif)
 
-### Preview controls
+### Console
 
-![Preview controls](images/controls.gif)
-
-### persistent controls
-
-![persistent controls](images/persistent.gif)
+![Console](images/2.0.0/console.gif)
 
 ### Errors display
 
-![Errors display](images/errors.gif)
+![Errors display](images/2.0.0/errors.gif)
+
+### Support imports
+
+![Support imports](images/2.0.0/imports.gif)
+![Support modules imports](images/2.0.0/modules.gif)
+
+### Preview focused file
+
+![Preview focused file](images/2.0.0/unlock.gif)
+
+### Preview controls
+
+![Preview controls](images/2.0.0/controls.gif)
 
 ### Theme aware
 
-![Errors display](images/theme_aware.gif)
+![theme aware](images/2.0.0/themeAware.gif)
 
 ### compatible with preprocessors
 
@@ -36,6 +45,23 @@ Svelte-preview is a vscode extension to preview your svelte components live
 - sass
 - stylus
 
+## Use rollup
+
+This switch allows you to use rollup to compile your svelte files it is generaly slower and require you to save your files to update.
+
+- custom dependencies parser:
+  - sometimes does not work
+  - generaly faster
+  - no need to save files
+  - errors and logs show true file paths
+- custom dependencies parser:
+  - sometimes does not work
+  - generaly slower
+  - need to save files
+  - errors and logs show fake (blob) path
+
+I recomend not using rollup unless it dosent work or it take longer to compile without it.
+
 ## Extension Settings
 
 None
@@ -44,9 +70,9 @@ None
 
 ## Known Issues
 
-- Imports not working
-  - node modules
-  - local files
+Some node modules raise this when using custom dependencies parser:
+
+    Error: Function called outside component initialization
 
 ## Release Notes
 
@@ -69,3 +95,25 @@ Add support for preprocessors:
 editor icon is the same as the extension icon:
 
 ![extension icon](media/logo.png)
+
+### 2.0.0
+
+- Add support for imports:
+  - svelte files
+  - node modules
+  - scripts
+    - typescript
+    - javascript
+  - parse tsconfig for paths aliases
+    - ex: `$lib` `$app`
+  - option to chose between custom dependencies parser and rollup
+- fix styling issues
+  - body not full width when not centered
+- Add counter for compilation duration
+- Add bottom drawer with:
+  - **CONSOLE**
+    - auto scroll
+    - clear button
+    - object view
+  - more compact errors
+- Add option to unlock and preview the curently focused file
