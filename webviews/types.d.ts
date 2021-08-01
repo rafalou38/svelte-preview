@@ -1,3 +1,5 @@
+declare module "svelte-json-tree";
+
 declare interface WebviewApi {
   getState: () => any;
   postMessage: (

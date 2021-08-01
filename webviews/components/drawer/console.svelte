@@ -1,5 +1,6 @@
 <script lang="ts">
   import { log, vscode } from "../stores";
+	import JSONTree from 'svelte-json-tree';
 
   function openFile(ref: string) {
     const match = ref.match(/(?<=\()(.*?):(\d+:\d+)/);
@@ -33,6 +34,11 @@
               class={"message " +
                 message.level}>
 							{message.message[4].stack}
+						</pre>
+						{:else if message.message.find(e=>typeof e === "object")}
+            <pre
+              class="message object">
+							<JSONTree value={message.message[0]} />
 						</pre>
           {:else}
             <span class={"message " + message.level}>
@@ -103,6 +109,26 @@
         font-style: italic;
         color: var(--vscode-debugConsole-errorForeground);
       }
+			&.object{
+				/* color */
+				--json-tree-label-color: var(--vscode-debugTokenExpression-name);
+				--json-tree-number-color: var(--vscode-debugTokenExpression-number);
+				--json-tree-string-color: var(--vscode-debugTokenExpression-string);
+				--json-tree-boolean-color: var(--vscode-debugTokenExpression-boolean);
+				--json-tree-symbol-color: var(--vscode-debugTokenExpression-value);
+				--json-tree-function-color: var(--vscode-debugTokenExpression-value);
+				--json-tree-null-color: var(--vscode-debugTokenExpression-value);
+				--json-tree-undefined-color: var(--vscode-debugTokenExpression-value);
+				--json-tree-date-color: var(--vscode-debugTokenExpression-value);
+
+				--json-tree-arrow-color: var(--vscode-editorGutter-foldingControlForeground); // or --vscode-icon-foreground
+				/* position */
+				--json-tree-li-indentation: 1em;
+				--json-tree-li-line-height: 1.3;
+				/* font */
+				--json-tree-font-size: 14px;
+				--json-tree-font-family: var(--vscode-editor-font-family);
+			}
     }
     .src-link {
       display: inline-block;
