@@ -41,15 +41,27 @@
 			return function(){
 				const e = new Error();
 				const caller = e.stack.split(/\\r\\n|\\n/)[2]?.trim();
-				window.parent.postMessage(
-					{
-						type: 'iframeLog',
-						message: [...arguments],
-						level: level,
-						caller
-					},
-					"*"
-				);
+				try{
+					window.parent.postMessage(
+						{
+							type: 'iframeLog',
+							message: [...arguments],
+							level: level,
+							caller
+						},
+						"*"
+					);
+				} catch (error) {
+					window.parent.postMessage(
+						{
+							type: 'iframeLog',
+							message: [error.toString(), "", 0, 0,  new Error("failed to transmit log" )],
+							level: "error",
+							caller
+						},
+						"*"
+					);
+				}
 			}
 		}
 		window.console.log = logger("info")
