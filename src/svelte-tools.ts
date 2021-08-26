@@ -220,7 +220,7 @@ function check_aliases(alias: string, modulePath: string) {
   if (!existsSync(tsconfigPath)) return;
 
   const tsconfig = JSON5.parse(readFileSync(tsconfigPath).toString());
-  const aliases = tsconfig?.compilerOptions?.paths as {
+  const aliases = (tsconfig?.compilerOptions?.paths || {}) as {
     [key: string]: string[];
   };
   let final = "";
