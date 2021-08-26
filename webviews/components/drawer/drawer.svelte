@@ -113,6 +113,8 @@
 </div>
 
 <style lang="scss">
+  @use "sass:math";
+
   .main {
     background: var(--vscode-panel-background);
     border-top: 1px solid var(--vscode-panel-border);
@@ -126,7 +128,7 @@
     position: absolute;
     height: $handle-height;
     width: 100%;
-    top: -($handle-height/2);
+    top: - math.div($handle-height,2);
     cursor: n-resize;
     transition: opacity 0.5s ease;
     opacity: 0;
