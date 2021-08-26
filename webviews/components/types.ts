@@ -1,4 +1,5 @@
 export interface CompileError {
+  frame: any;
   code: string;
   end: {
     line: number;
