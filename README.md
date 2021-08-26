@@ -117,3 +117,9 @@ editor icon is the same as the extension icon:
     - object view
   - more compact errors
 - Add option to unlock and preview the curently focused file
+
+### 2.1.0
+
+- Fix critical errors
+  - remove nonce to allow user code execution
+  - fix error caused by non existent path in tsconfig
