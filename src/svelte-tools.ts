@@ -63,27 +63,31 @@ export async function generate(
   final.css += result.css || "";
 
   // Find Node modules
-  if (!nodeModules) {
-    nodeModules = locateNodeModules(filename);
-    if (!nodeModules) {
-      return {
-        js: {},
-        css: "",
-        err: [
-          {
-            start: {
-              line: 0,
-              column: 0, //TODO show real position
-            },
-            message: "node modules not found",
-          },
-        ],
-        sourceMap: {},
-      };
-    }
-  }
+  nodeModules = locateNodeModules(filename);
   const uri = "";
-  await walk(result.js, filename, nodeModules, uri, transformModule);
+  let error = await walk(
+    result.js,
+    filename,
+    nodeModules,
+    uri,
+    transformModule
+  );
+  if (error && error.code === "MODULE_NOT_FOUND") {
+    return {
+      js: {},
+      css: "",
+      err: [
+        {
+          message: `module not found: ${error.value}`,
+          start: {
+            line: 0,
+            column: 0,
+          },
+        },
+      ],
+      sourceMap: {},
+    };
+  }
 
   return final;
 }
@@ -127,7 +131,7 @@ async function walk(
     isNodeModule: boolean
   ) => Promise<string | undefined>
 ) {
-  const regex = /^[^\s*\/]+[\w\s*{},:]+?from\s?["'](.+)["']/gm;
+  const regex = /^\s*(?!\/)import.+?["|'](.+)["|']/gm;
 
   while (1) {
     let isNodeModule = false;
@@ -196,8 +200,13 @@ async function walk(
       let depContent;
       if (openDoc) {
         depContent = openDoc.getText();
-      } else {
+      } else if (existsSync(depPath)) {
         depContent = readFileSync(depPath).toString();
+      } else {
+        return {
+          code: "MODULE_NOT_FOUND",
+          value: depName,
+        };
       }
       depContent =
         (await cb(
@@ -207,7 +216,17 @@ async function walk(
           uri + ">" + depName,
           isNodeModule
         )) || depContent;
-      await walk(depContent, depPath, nodeModule, uri + ">" + depName, cb);
+
+      let error = await walk(
+        depContent,
+        depPath,
+        nodeModule,
+        uri + ">" + depName,
+        cb
+      );
+      if (error) {
+        return error;
+      }
     }
   }
 }
