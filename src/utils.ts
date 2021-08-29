@@ -12,4 +12,5 @@ export function locateNodeModules(file: string) {
       return possiblePath;
     }
   }
+  return path.resolve(path.dirname(__filename), "..", "node_modules");
 }

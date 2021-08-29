@@ -24,8 +24,12 @@ export class PreviewPanel {
     extensionUri: vscode.Uri,
     context: vscode.ExtensionContext
   ) {
-    const currentFile = vscode.window.activeTextEditor?.document.fileName;
-    if (currentFile && currentFile?.endsWith(".svelte")) {
+    const document = vscode.window.activeTextEditor?.document;
+    const currentFile = document?.fileName;
+    if (
+      currentFile &&
+      (document?.languageId === "svelte" || currentFile?.endsWith(".svelte"))
+    ) {
       const column = vscode.ViewColumn.Beside;
 
       const existingPanel = PreviewPanel.panels.get(currentFile);

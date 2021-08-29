@@ -25,7 +25,8 @@ export function activate(context: vscode.ExtensionContext) {
     if (
       document.fileName.endsWith(".svelte") ||
       document.fileName.endsWith(".js") ||
-      document.fileName.endsWith(".ts")
+      document.fileName.endsWith(".ts") ||
+      document.languageId === "svelte"
     ) {
       const { rollup: useRollup } = context.workspaceState.get(
         "svelte-preview-config",
