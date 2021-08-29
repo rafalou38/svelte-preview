@@ -17,11 +17,18 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.workspace.onDidSaveTextDocument((document) => {
-    if (document.fileName.endsWith(".svelte")) {
+    const { rollup: useRollup } = context.workspaceState.get(
+      "svelte-preview-config",
+      {
+        rollup: false,
+      }
+    );
+    if (useRollup && document.fileName.endsWith(".svelte")) {
       PreviewPanel.panels.get(document.fileName)?.update();
     }
   });
   vscode.workspace.onDidChangeTextDocument(({ contentChanges, document }) => {
+    if (contentChanges.length === 0) return;
     if (
       document.fileName.endsWith(".svelte") ||
       document.fileName.endsWith(".js") ||

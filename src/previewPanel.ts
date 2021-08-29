@@ -153,7 +153,7 @@ export class PreviewPanel {
       }
     });
 
-    this._update();
+    // this._update();
 
     // Listen for when the panel is disposed
     // This happens when the user closes the panel or when the panel is closed programatically
