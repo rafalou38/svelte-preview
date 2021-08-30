@@ -130,7 +130,10 @@ async function walk(
     uri: string,
     isNodeModule: boolean
   ) => Promise<string | undefined>
-) {
+): Promise<{
+  code: string;
+  value: string;
+} | void> {
   const regex = /^\s*(?!\/)import.+?["|'](.+)["|']/gm;
 
   while (1) {
