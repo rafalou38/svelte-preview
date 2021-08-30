@@ -3,6 +3,7 @@
 
   import Console from "./console.svelte";
   import Errors from "./errors.svelte";
+  import Infos from "./infos.svelte";
 
   let dragging = false;
   let height = 300;
@@ -64,6 +65,13 @@
     {#if ($code?.err?.length || 0) > 0}
       <div class="count">{$code?.err.length}</div>
     {/if}
+    <li
+      class="tab"
+      class:active={current == "infos"}
+      on:click={() => (current = "infos")}
+    >
+      infos
+    </li>
     <div class="right">
       {#if current === "console"}
         <button
@@ -108,7 +116,7 @@
   {:else if current == "errors"}
     <Errors />
   {:else if current == "infos"}
-    <!-- else if content here -->
+    <Infos/>
   {/if}
 </div>
 
