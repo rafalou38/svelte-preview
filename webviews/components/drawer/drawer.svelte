@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { code, log } from "../stores";
+  import { code, log, preservelog } from "../stores";
 
   import Console from "./console.svelte";
   import Errors from "./errors.svelte";
@@ -108,6 +108,27 @@
             />
           </svg>
         </button>
+        <button
+          class="action-btn"
+          class:active={$preservelog}
+          title="preserve logs"
+          on:click={() => ($preservelog = !$preservelog)}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M13.353 1.146L14.853 2.646L15 3V14.5L14.5 15H1.5L1 14.5V1.5L1.5 1H13L13.353 1.146ZM2 2V14H14V3.208L12.793 2H11V6H4V2H2ZM8 2V5H10V2H8Z"
+              fill="#C5C5C5"
+            />
+          </svg>
+        </button>
       {/if}
     </div>
   </ul>
@@ -116,7 +137,7 @@
   {:else if current == "errors"}
     <Errors />
   {:else if current == "infos"}
-    <Infos/>
+    <Infos />
   {/if}
 </div>
 
@@ -136,7 +157,7 @@
     position: absolute;
     height: $handle-height;
     width: 100%;
-    top: - math.div($handle-height,2);
+    top: - math.div($handle-height, 2);
     cursor: n-resize;
     transition: opacity 0.5s ease;
     opacity: 0;
@@ -179,6 +200,9 @@
       }
     }
     .right {
+      display: flex;
+      width: max-content;
+      gap: 1em;
       margin-left: auto;
       padding-right: 1em;
       .action-btn {
@@ -188,7 +212,8 @@
         border-radius: 5px;
         display: grid;
         place-items: center;
-        &:hover {
+        &:hover,
+        &.active {
           background-color: rgba(90, 93, 94, 0.31);
         }
         &:focus {

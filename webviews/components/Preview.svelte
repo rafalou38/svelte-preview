@@ -3,7 +3,14 @@
   import "./global.css";
   import Drawer from "./drawer/drawer.svelte";
   import { transformModulesToBlobURLS } from "./modulesHandler";
-  import { code, config, InternalsourceMap, vscode } from "./stores";
+  import {
+    code,
+    config,
+    InternalsourceMap,
+    log,
+    preservelog,
+    vscode,
+  } from "./stores";
   if (!$code) {
     $vscode?.postMessage({ type: "actualize", value: "" });
   }
@@ -79,6 +86,10 @@
     IBody.appendChild(style);
 
     applyConfig();
+
+    if (!$preservelog) {
+      $log = [];
+    }
   }
 
   function applyConfig() {

@@ -31,6 +31,7 @@ export const config = writable({
 
 export const locked = writable(true);
 
+export const preservelog = writable(true);
 export const log = writable<
   {
     message: any[];
