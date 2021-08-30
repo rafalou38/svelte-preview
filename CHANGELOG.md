@@ -43,3 +43,8 @@
 - Fix critical errors
   - remove nonce to allow user code execution
   - fix error caused by non existent path in tsconfig
+
+## [2.2.0]
+
+- Add info tab in bottom drawer
+- add button to clear log on each code update

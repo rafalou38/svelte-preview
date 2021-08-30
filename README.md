@@ -1,3 +1,8 @@
+[![Join our discord](https://img.shields.io/discord/881522554286792714?color=%235865f2&logo=discord&logoColor=%23fff&style=for-the-badge)](https://discord.gg/dE8xgATM67)
+[![stars](https://img.shields.io/github/stars/rafalou38/svelte-preview?color=%23FFA505&logo=github&style=for-the-badge)](https://github.com/rafalou38/svelte-preview/stargazers)
+![version](https://img.shields.io/visual-studio-marketplace/v/RafaelMartinez.svelte-preview?color=%230f&style=for-the-badge)
+![last updated](https://img.shields.io/visual-studio-marketplace/last-updated/RafaelMartinez.svelte-preview?style=for-the-badge)
+
 # svelte-preview
 
 Svelte-preview is a vscode extension to preview your svelte components live
@@ -123,3 +128,8 @@ editor icon is the same as the extension icon:
 - Fix critical errors
   - remove nonce to allow user code execution
   - fix error caused by non existent path in tsconfig
+
+### 2.2.0
+
+- Add info tab in bottom drawer
+- add button to clear log on each code update

@@ -37,6 +37,11 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.2.0</h4>
+    <ul class="changes">
+      <li>Add info tab in bottom drawer</li>
+      <li>add button to clear log on each code update</li>
+    </ul>
     <h4>2.1.0</h4>
     <ul class="changes">
       <li>Fix critical errors</li>
