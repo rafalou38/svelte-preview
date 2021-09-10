@@ -134,7 +134,7 @@ async function walk(
   code: string;
   value: string;
 } | void> {
-  const regex = /^\s*(?!\/)import.+?["|'](.+)["|']/gm;
+  const regex = /^\s*(?!\/)import[\w\W]+?["|'](.+)["|']/gm;
 
   while (1) {
     let isNodeModule = false;
