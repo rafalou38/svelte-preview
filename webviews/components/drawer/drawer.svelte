@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { code, log, preservelog } from "../stores";
+  import { code, config, CURRENT_VERSION, log, preservelog, vscode } from "../stores";
 
   import Console from "./console.svelte";
   import Errors from "./errors.svelte";
@@ -13,6 +13,10 @@
   ) {
     if (!dragging) return;
     height = height - e.movementY;
+  }
+  function updateCurrentVersion() {
+    $config.currentVersion = CURRENT_VERSION;
+    $vscode?.postMessage({ type: "editConfig", value: $config });
   }
 
   $: {
@@ -68,10 +72,13 @@
     <li
       class="tab"
       class:active={current == "infos"}
-      on:click={() => (current = "infos")}
+      on:click={() => {current = "infos"; updateCurrentVersion()}}
     >
       infos
     </li>
+    {#if $config.currentVersion !== CURRENT_VERSION}
+      <div class="count">v{CURRENT_VERSION}</div>
+    {/if}
     <div class="right">
       {#if current === "console"}
         <button

@@ -21,12 +21,14 @@ let sourceMapValue: {
   [key: string]: string;
 };
 
+export const CURRENT_VERSION = "2.3.0";
 export const config = writable({
   center: false,
   activeBg: false,
   bg: "#fff0",
   zoom: "1",
   rollup: false,
+  currentVersion: "0",
 });
 
 export const locked = writable(true);
