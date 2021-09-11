@@ -37,6 +37,12 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.3.0</h4>
+    <ul class="changes">
+      <li>Fix failed svelte/internal import</li>
+      <li>Controls more responsive (wrap on different lines)</li>
+      <li>Add drawer info badge for when a new version is added</li>
+    </ul>
     <h4>2.2.0</h4>
     <ul class="changes">
       <li>Add info tab in bottom drawer</li>
@@ -85,6 +91,9 @@
   h4 {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+    &:first-child {
+      font-weight: 900;
+    }
   }
   .field {
     padding-left: 2em;

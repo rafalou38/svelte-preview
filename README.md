@@ -133,3 +133,9 @@ editor icon is the same as the extension icon:
 
 - Add info tab in bottom drawer
 - add button to clear log on each code update
+
+## 2.3.0
+
+- Fix failed svelte/internal import
+- Controls are more responsive (wrap on different lines)
+- Add drawer info badge for when a new version is added
