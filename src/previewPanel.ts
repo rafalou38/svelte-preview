@@ -39,7 +39,8 @@ export class PreviewPanel {
         existingPanel._update();
         return;
       }
-
+      const workspaceURIS =
+        vscode.workspace.workspaceFolders?.map((folder) => folder.uri) || [];
       const panel = vscode.window.createWebviewPanel(
         PreviewPanel.viewType,
         path.basename(currentFile) + " - preview",
@@ -48,6 +49,7 @@ export class PreviewPanel {
           enableScripts: true,
           localResourceRoots: [
             vscode.Uri.joinPath(extensionUri, "out/compiled"),
+            ...workspaceURIS,
           ],
         }
       );
@@ -199,6 +201,7 @@ export class PreviewPanel {
       );
     } else {
       result = await svelte.generate(
+        this._panel.webview,
         this.document?.getText() || "",
         this.document?.fileName || "",
         "",
@@ -249,7 +252,7 @@ export class PreviewPanel {
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
-					<meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource};">
+					<meta http-equiv="Content-Security-Policy" content="img-src https: data: blob:; style-src 'unsafe-inline' ${webview.cspSource};">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<link href="${styleMainUri}" rel="stylesheet">
 				</head>

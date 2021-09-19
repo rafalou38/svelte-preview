@@ -35,7 +35,10 @@
     const root = document.createElement("div");
     root.className = "root";
     IBody.appendChild(root);
-    const { mainModuleURI, sourceMap } = transformModulesToBlobURLS($code.js);
+    const { mainModuleURI, sourceMap } = await transformModulesToBlobURLS(
+      $code.js,
+      $code.sources
+    );
     InternalsourceMap.set(sourceMap);
     const appScript = document.createElement("script");
     appScript.setAttribute("type", "module");

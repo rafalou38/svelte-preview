@@ -31,6 +31,7 @@ const preprocessorList = [
 
 let final: IResult;
 export async function generate(
+  webview: vscode.Webview,
   code: string,
   filename: string,
   nodeModules?: string,
@@ -43,6 +44,7 @@ export async function generate(
     css: "",
     err: [],
     sourceMap: {},
+    sources: {},
   };
 
   const result = await compile(
@@ -54,7 +56,7 @@ export async function generate(
   );
 
   if (result.err.length !== 0)
-    return { js: {}, css: "", err: result.err, sourceMap: {} };
+    return { js: {}, css: "", err: result.err, sourceMap: {}, sources: {} };
 
   final.sourceMap[""] = filename;
   final.js[""] = result.js;
@@ -70,11 +72,12 @@ export async function generate(
     filename,
     nodeModules,
     uri,
-    transformModule
+    transformModule.bind(webview)
   );
   if (error && error.code === "MODULE_NOT_FOUND") {
     return {
       js: {},
+      sources: {},
       css: "",
       err: [
         {
@@ -93,6 +96,7 @@ export async function generate(
 }
 
 async function transformModule(
+  this: vscode.Webview,
   content: string,
   name: string,
   modulePath: string,
@@ -115,6 +119,9 @@ async function transformModule(
       compilerOptions: { module: 6, target: 1, strict: false },
     });
     final.js[uri] = js.outputText;
+  } else {
+    const moduleURI = this.asWebviewUri(vscode.Uri.file(modulePath));
+    final.sources[uri] = moduleURI.toString();
   }
 }
 
@@ -134,106 +141,120 @@ async function walk(
   code: string;
   value: string;
 } | void> {
-  const regex = /^\s*(?!\/)import[\w\W]+?["|'](.+)["|']/gm;
+  content = removeComments(content);
+  const regex = /(?=\s*)(?!\/)(?<=from "|import ")(?<= ").*?(?=")/gm;
+  const sourcesRegex = /(?=\s*)(?!\/)(?<=src_value = ")(?<= ").*?(?=")/gm;
 
   while (1) {
     let isNodeModule = false;
     let match = regex.exec(content);
-    if (match === null) break;
+    let isSource = false;
+    if (!match || match[0] === "") {
+      match = sourcesRegex.exec(content);
+      if (!match || match[0] === "") break;
+      isSource = true;
+    }
 
-    const depName = match?.[1];
-    if (depName !== undefined) {
-      // ==> RESOLVE ABSOLUTE PATH OF THE MODULE
-      let depPath = "";
-      if (depName.startsWith(".")) {
-        depPath = path.resolve(path.dirname(filePath), depName);
+    const depName = match?.[0];
+    if (depName === undefined) return;
+
+    // ==> RESOLVE ABSOLUTE PATH OF THE MODULE
+    let depPath = "";
+    if (depName.startsWith(".")) {
+      depPath = path.resolve(path.dirname(filePath), depName);
+      const packageJsonPath = path.resolve(depPath, "package.json");
+      if (!depPath.match(/\.\w+$/)) {
+        if (existsSync(depPath + ".js")) {
+          depPath += ".js";
+        } else if (existsSync(depPath + ".mjs")) {
+          depPath += ".mjs";
+        } else if (existsSync(depPath + ".ts")) {
+          depPath += ".ts";
+        } else if (existsSync(packageJsonPath)) {
+          const packageJson = JSON.parse(
+            readFileSync(packageJsonPath).toString()
+          );
+          depPath = path.resolve(depPath, packageJson.module);
+        } else if (!isSource) {
+          return {
+            code: "NOT_FOUND",
+            value: depName,
+          };
+        }
+      }
+    } else if (!isSource) {
+      const alias = check_aliases(depName, filePath);
+      if (alias) {
+        depPath = alias;
+      } else {
         if (!depPath.match(/\.\w+$/)) {
-          if (existsSync(depPath + ".js")) {
-            depPath += ".js";
-          } else if (existsSync(depPath + ".mjs")) {
-            depPath += ".mjs";
-          } else if (existsSync(depPath + ".ts")) {
-            depPath += ".ts";
-          } else {
-            const packageJsonPath = path.resolve(depPath, "package.json");
-            const packageJson = JSON.parse(
-              readFileSync(packageJsonPath).toString()
-            );
-            depPath = path.resolve(depPath, packageJson.module);
-          }
+          depPath = path.resolve(nodeModule, depName);
+          isNodeModule = true;
         }
-      } else {
-        const alias = check_aliases(depName, filePath);
-        if (alias) {
-          depPath = alias;
+      }
+      if (!depPath.includes(".")) {
+        if (existsSync(depPath + ".js")) {
+          depPath += ".js";
+        } else if (existsSync(depPath + ".ts")) {
+          depPath += ".ts";
+        } else if (existsSync(path.resolve(depPath, "package.json"))) {
+          const packageJsonPath = path.resolve(depPath, "package.json");
+          const packageJson = JSON.parse(
+            readFileSync(packageJsonPath).toString()
+          );
+          depPath = path.resolve(
+            depPath,
+            packageJson.module || packageJson.svelte
+          );
+        } else if (existsSync(depPath + ".mjs")) {
+          depPath += ".mjs";
+        } else if (existsSync(path.resolve(depPath, "index.js"))) {
+          depPath = path.resolve(depPath, "index.js");
+        } else if (existsSync(path.resolve(depPath, "index.ts"))) {
+          depPath = path.resolve(depPath, "index.ts");
         } else {
-          if (!depPath.match(/\.\w+$/)) {
-            depPath = path.resolve(nodeModule, depName);
-            isNodeModule = true;
-          }
-        }
-        if (!depPath.includes(".")) {
-          if (existsSync(depPath + ".js")) {
-            depPath += ".js";
-          } else if (existsSync(depPath + ".ts")) {
-            depPath += ".ts";
-          } else if (existsSync(path.resolve(depPath, "package.json"))) {
-            const packageJsonPath = path.resolve(depPath, "package.json");
-            const packageJson = JSON.parse(
-              readFileSync(packageJsonPath).toString()
-            );
-            depPath = path.resolve(
-              depPath,
-              packageJson.module || packageJson.svelte
-            );
-          } else if (existsSync(depPath + ".mjs")) {
-            depPath += ".mjs";
-          } else if (existsSync(path.resolve(depPath, "index.js"))) {
-            depPath = path.resolve(depPath, "index.js");
-          } else if (existsSync(path.resolve(depPath, "index.ts"))) {
-            depPath = path.resolve(depPath, "index.ts");
-          } else {
-            // TODO: not found error
-          }
+          // TODO: not found error
         }
       }
-      const openDoc = vscode.workspace.textDocuments.find(
-        (doc) => doc.fileName === depPath
-      );
-      let depContent;
-      if (openDoc) {
-        depContent = openDoc.getText();
-      } else if (existsSync(depPath)) {
-        depContent = readFileSync(depPath).toString();
-      } else {
-        return {
-          code: "MODULE_NOT_FOUND",
-          value: depName,
-        };
-      }
-      depContent =
-        (await cb(
-          depContent,
-          depName,
-          depPath,
-          uri + ">" + depName,
-          isNodeModule
-        )) || depContent;
-
-      let error = await walk(
+    }
+    const openDoc = vscode.workspace.textDocuments.find(
+      (doc) => doc.fileName === depPath
+    );
+    let depContent = "";
+    if (openDoc) {
+      depContent = openDoc.getText();
+    } else if (existsSync(depPath)) {
+      depContent = readFileSync(depPath).toString();
+    } else if (!isSource) {
+      return {
+        code: "MODULE_NOT_FOUND",
+        value: depName,
+      };
+    }
+    depContent =
+      (await cb(
         depContent,
+        depName,
         depPath,
-        nodeModule,
         uri + ">" + depName,
-        cb
-      );
-      if (error) {
-        return error;
-      }
+        isNodeModule
+      )) || depContent;
+
+    let error = await walk(
+      depContent,
+      depPath,
+      nodeModule,
+      uri + ">" + depName,
+      cb
+    );
+    if (error) {
+      return error;
     }
   }
 }
-
+function removeComments(code: string) {
+  return code.replace(/(\/\/.+)|(\/\*[\w\W]*?\*\/)/gm, "");
+}
 function check_aliases(alias: string, modulePath: string) {
   const nodeModules = locateNodeModules(modulePath);
   if (!nodeModules) return;

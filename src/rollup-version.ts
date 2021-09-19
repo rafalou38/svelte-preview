@@ -23,6 +23,7 @@ export async function generate(
       css: "",
       err: [],
       sourceMap: {},
+      sources: {},
     };
     if (!nodeModules) {
       nodeModules = locateNodeModules(filename);
@@ -40,6 +41,7 @@ export async function generate(
             },
           ],
           sourceMap: {}, //TODO
+          sources: {},
         };
       }
     }
@@ -101,6 +103,7 @@ new App({
         },
       ],
       sourceMap: {},
+      sources: {},
     };
   }
 }

@@ -10,6 +10,10 @@ interface IResult {
   js: {
     [key: string]: string;
   };
+  /** images, videos... */
+  sources: {
+    [key: string]: string;
+  };
   css: string;
   err: (
     | Warning

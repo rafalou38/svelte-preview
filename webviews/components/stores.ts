@@ -6,6 +6,10 @@ export const code = writable<{
   js: {
     [key: string]: string;
   };
+  /** images, videos... */
+  sources: {
+    [key: string]: string;
+  };
   css: string;
   err: CompileError[];
   startTime?: number;
