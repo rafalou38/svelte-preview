@@ -23,7 +23,7 @@ async function parse(
   walkUri: string
 ) {
   const regex =
-    /(?=\s*)(?!\/)(?<=from "|import "|src_value = ")(?<= ").*?(?=")/gm;
+    /(?=\s*)(?!\/)(?<=from ["']|import ["']|src_value = ["'])(?<= ["']).*?(?=["'])/gm;
   while (1) {
     let match = regex.exec(code);
     if (match === null) break;

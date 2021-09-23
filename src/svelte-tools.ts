@@ -142,8 +142,10 @@ async function walk(
   value: string;
 } | void> {
   content = removeComments(content);
-  const regex = /(?=\s*)(?!\/)(?<=from "|import ")(?<= ").*?(?=")/gm;
-  const sourcesRegex = /(?=\s*)(?!\/)(?<=src_value = ")(?<= ").*?(?=")/gm;
+  const regex =
+    /(?=\s*)(?!\/)(?<=from ["']|import ["'])(?<= ["']).*?(?=["'])/gm;
+  const sourcesRegex =
+    /(?=\s*)(?!\/)(?<=src_value = ["'])(?<= ["']).*?(?=["'])/gm;
 
   while (1) {
     let isNodeModule = false;
