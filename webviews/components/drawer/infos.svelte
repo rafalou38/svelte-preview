@@ -37,6 +37,10 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.3.1</h4>
+    <ul class="changes">
+      <li>Fix images preview</li>
+    </ul>
     <h4>2.3.0</h4>
     <ul class="changes">
       <li>Fix failed svelte/internal import</li>

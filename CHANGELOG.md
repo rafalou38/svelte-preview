@@ -54,3 +54,7 @@
 - Fix failed svelte/internal import
 - Controls are more responsive (wrap on different lines)
 - Add drawer info badge for when a new version is added
+
+## [2.3.1]
+
+- Fix images preview
