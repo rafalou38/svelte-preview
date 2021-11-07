@@ -5,16 +5,47 @@
   function update() {
     $vscode?.postMessage({ type: "editConfig", value: $config });
   }
-	function updateLock(e: Event) {
-		$vscode?.postMessage({ type: "updateLock", value: $locked });
-	}
+  function updateLock(e: Event) {
+    $vscode?.postMessage({ type: "updateLock", value: $locked });
+  }
+
+  let opened = true;
 </script>
 
-<div class="controls">
+<button class="visibility-toggle" on:click={() => (opened = !opened)}>
+  {#if opened}
+    <!-- Carret Up svg -->
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+    >
+      <path
+        fill="currentColor"
+        d="M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z"
+      />
+    </svg>
+  {:else}
+    <!-- Carret Down svg -->
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+    >
+      <path
+        fill="currentColor"
+        d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"
+      />
+    </svg>
+  {/if}
+</button>
+<div class="controls" class:closed={!opened}>
   <div class="wrap">
     <label for="lock">
       lock
-      <Switch id="lock" on:change={updateLock} bind:checked={$locked}/>
+      <Switch id="lock" on:change={updateLock} bind:checked={$locked} />
     </label>
     <label for="center">
       center
@@ -72,11 +103,41 @@
     align-items: center;
     gap: 1em;
   }
+  .visibility-toggle {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    margin: 0.25rem;
+    padding: 0.25rem;
+    border-radius: 100%;
+    cursor: pointer;
+    border: none;
+    background: var(--vscode-titleBar-activeBackground);
+    color: var(--vscode-icon-foreground);
+    opacity: 0.3;
+    transition: opacity 0.2s ease-in-out;
+    width: 24px;
+    box-sizing: content-box;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    &:hover {
+      opacity: 1;
+    }
+  }
   .controls {
     display: flex;
     background: var(--vscode-titleBar-activeBackground);
     padding: 1em;
-    .wrap{
+    position: relative;
+    transition: transform 0.2s ease-in-out;
+    &.closed {
+      transform: translateY(-100%);
+      position: absolute;
+    }
+
+    .wrap {
       display: flex;
       flex-grow: 1;
       flex-wrap: wrap;
@@ -97,7 +158,7 @@
       font-weight: bold;
     }
   }
-  @media (max-width: 855px){
+  @media (max-width: 855px) {
     label {
       margin-bottom: 1.5em;
     }
