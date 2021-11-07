@@ -143,3 +143,7 @@ editor icon is the same as the extension icon:
 ## 2.3.1
 
 - Fix images preview
+
+## 2.3.2
+
+- Add button to hide controls
