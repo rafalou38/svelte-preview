@@ -336,7 +336,7 @@ async function compile(
     }
 
     let compiled = svelte.compile(preprocessed.toString?.() || "", {});
-    let err = compiled.warnings;
+    let err = compiled.warnings.filter((e) => e.code !== "css-unused-selector");
 
     let js: string = compiled.js.code; // convert js imports to browser imports
 
