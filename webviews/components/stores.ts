@@ -32,6 +32,7 @@ export const config = writable({
   bg: "#fff0",
   zoom: "1",
   rollup: false,
+  saveReload: false,
   currentVersion: "0",
 });
 

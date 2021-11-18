@@ -222,6 +222,7 @@ export class PreviewPanel {
       bg: "#fff0",
       zoom: "1",
       rollup: false,
+      saveReload: false,
     });
     this._panel.webview.postMessage({
       type: "setConfig",

@@ -17,13 +17,14 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   vscode.workspace.onDidSaveTextDocument((document) => {
-    const { rollup: useRollup } = context.workspaceState.get(
+    const { rollup: useRollup, saveReload } = context.workspaceState.get(
       "svelte-preview-config",
       {
         rollup: false,
+        saveReload: false,
       }
     );
-    if (useRollup && document.fileName.endsWith(".svelte")) {
+    if ((useRollup || saveReload) && document.fileName.endsWith(".svelte")) {
       PreviewPanel.panels.get(document.fileName)?.update();
     }
   });
@@ -35,13 +36,14 @@ export function activate(context: vscode.ExtensionContext) {
       document.fileName.endsWith(".ts") ||
       document.languageId === "svelte"
     ) {
-      const { rollup: useRollup } = context.workspaceState.get(
+      const { rollup: useRollup, saveReload } = context.workspaceState.get(
         "svelte-preview-config",
         {
           rollup: false,
+          saveReload: false,
         }
       );
-      if (useRollup) return;
+      if (useRollup || saveReload) return;
       PreviewPanel.panels.forEach((e) => e.update());
     }
   });

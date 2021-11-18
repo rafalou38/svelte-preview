@@ -47,6 +47,18 @@
       lock
       <Switch id="lock" on:change={updateLock} bind:checked={$locked} />
     </label>
+    <label for="rollup">
+      reload <br /> on save
+      <Switch
+        id="rollup"
+        on:change={update}
+        bind:checked={$config.saveReload}
+      />
+    </label>
+    <label for="rollup">
+      use rollup
+      <Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
+    </label>
     <label for="center">
       center
       <Switch id="center" on:change={update} bind:checked={$config.center} />
@@ -81,10 +93,6 @@
         <option value="11">11x</option>
         <option value="12">12x</option>
       </select>
-    </label>
-    <label for="rollup">
-      use rollup
-      <Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
     </label>
   </div>
 
