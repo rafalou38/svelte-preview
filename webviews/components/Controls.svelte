@@ -5,10 +5,26 @@
   function update() {
     $vscode?.postMessage({ type: "editConfig", value: $config });
   }
+  function updateSaveReload(e: unknown) {
+    if ($config.rollup) return;
+
+    // set only if rollup is not enabled
+    console.log(SaveReload.checked);
+
+    $config.saveReload = !!SaveReload.checked;
+    update();
+  }
   function updateLock(e: Event) {
     $vscode?.postMessage({ type: "updateLock", value: $locked });
   }
 
+  $: {
+    if (!$config.rollup) {
+      SaveReload;
+    }
+  }
+
+  let SaveReload: Switch;
   let opened = true;
 </script>
 
@@ -51,8 +67,10 @@
       reload <br /> on save
       <Switch
         id="saveReload"
-        on:change={update}
-        bind:checked={$config.saveReload}
+        on:change={updateSaveReload}
+        disabled={$config.rollup}
+        checked={$config.rollup ? true : $config.saveReload}
+        bind:this={SaveReload}
       />
     </label>
     <label

@@ -1,3 +1,5 @@
+<svelte:options accessors={true} />
+
 <script lang="ts">
   let className = "";
   export { className as class };
@@ -71,7 +73,7 @@
     }
 
     &--disabled {
-      opacity: 0.65;
+      opacity: 0.5;
       input[type="checkbox"] {
         cursor: not-allowed;
       }
