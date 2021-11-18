@@ -43,27 +43,33 @@
 </button>
 <div class="controls" class:closed={!opened}>
   <div class="wrap">
-    <label for="lock">
+    <label for="lock" title="Keep the preview on the same file.">
       lock
       <Switch id="lock" on:change={updateLock} bind:checked={$locked} />
     </label>
-    <label for="rollup">
+    <label for="saveReload" title="Only reload preview when you save a file.">
       reload <br /> on save
       <Switch
-        id="rollup"
+        id="saveReload"
         on:change={update}
         bind:checked={$config.saveReload}
       />
     </label>
-    <label for="rollup">
+    <label
+      for="rollup"
+      title="If your code does not preview this switch may help. Usually slower and need to save for preview."
+    >
       use rollup
       <Switch id="rollup" on:change={update} bind:checked={$config.rollup} />
     </label>
-    <label for="center">
+    <label
+      for="center"
+      title="Wheter your component should be centered on the page, useful for small components."
+    >
       center
       <Switch id="center" on:change={update} bind:checked={$config.center} />
     </label>
-    <label for="background">
+    <label for="background" title="Change the background of the preview.">
       background
       <Switch
         id="background"
@@ -74,7 +80,7 @@
         <input type="color" on:change={update} bind:value={$config.bg} />
       {/if}
     </label>
-    <label for="zoom">
+    <label for="zoom" title="Zoom your component to make it bigger or smaller.">
       zoom
       <select name="zoom" on:blur={update} id="zoom" bind:value={$config.zoom}>
         <option value="0.5">0.5x</option>
