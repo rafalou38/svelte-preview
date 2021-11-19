@@ -69,7 +69,7 @@
 							level: "error",
 							caller
 						},
-						"*"
+						"*" 
 					);
 				}
 			}
@@ -118,7 +118,9 @@
 
 <div class="wrapper">
   <Controls />
-  <iframe title="preview" bind:this={iframe} />
+  <div class="preview" style={$config.activeBg ? `--bg: ${$config.bg}` : ""}>
+    <iframe title="preview" bind:this={iframe} />
+  </div>
   <Drawer />
 </div>
 
@@ -141,8 +143,20 @@
     width: 100%;
     height: 100%;
   }
-  iframe {
+  .preview {
+    position: relative;
     flex-grow: 1;
-    border: none;
+    background: var(--bg);
+    background-repeat: no-repeat;
+    background-size: contain;
+
+    & > * {
+      border: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
   }
 </style>
