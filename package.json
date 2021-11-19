@@ -63,7 +63,7 @@
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
-    "@tsconfig/svelte": "^1.0.10",
+    "@tsconfig/svelte": "^2.0.1",
     "@types/babel__core": "^7.1.14",
     "@types/estree": "^0.0.48",
     "@types/glob": "^7.1.3",
