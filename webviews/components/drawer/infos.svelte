@@ -37,6 +37,14 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.4.0</h4>
+    <ul class="changes">
+      <li>add description tooltips to each switch</li>
+      <li>Add option to only reload on save</li>
+      <li>Reorganise switches order</li>
+      <li>disable error shown for unused css selector</li>
+      <li>Improve blinking issues</li>
+    </ul>
     <h4>2.3.2</h4>
     <ul class="changes">
       <li>Add button to hide controls</li>

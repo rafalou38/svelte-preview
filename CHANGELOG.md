@@ -62,3 +62,12 @@
 ## [2.3.2]
 
 - Add button to hide controls
+
+## [2.4.0]
+
+- add description tooltips to each switch 
+- Add option to only reload on save
+- Reorganise switches order
+- disable error shown for unused css selector
+- Improve blinking issues
+- Removed the changelog from the readme
