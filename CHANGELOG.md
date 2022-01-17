@@ -71,3 +71,10 @@
 - disable error shown for unused css selector
 - Improve blinking issues
 - Removed the changelog from the readme
+
+## [2.4.1]
+
+- Show more details for Typescript issues no more `[svelte-preprocess] Encountered type error`
+- Fix unresolved svelte/internal when no node_modules folder present in project
+  - preview without svelte installed now possible again
+    - No folder opened

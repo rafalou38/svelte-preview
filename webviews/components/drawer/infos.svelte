@@ -37,6 +37,23 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.4.1</h4>
+    <ul>
+      <li>
+        Show more details for Typescript issues no more `[svelte-preprocess]
+        Encountered type error`
+      </li>
+      <li>
+        Fix unresolved svelte/internal when no node_modules folder present in
+        project
+      </li>
+      <ul>
+        <li>preview without svelte installed now possible again</li>
+        <ul>
+          <li>No folder opened</li>
+        </ul>
+      </ul>
+    </ul>
     <h4>2.4.0</h4>
     <ul class="changes">
       <li>add description tooltips to each switch</li>
