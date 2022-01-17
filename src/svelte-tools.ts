@@ -21,7 +21,9 @@ let svelteCode = "";
 
 const preprocessorList = [
   scss({}),
-  typescript({}),
+  typescript({
+    reportDiagnostics: false,
+  }),
   babel({}),
   coffeescript({}),
   less({}),
