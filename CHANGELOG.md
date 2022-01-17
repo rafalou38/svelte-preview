@@ -72,7 +72,7 @@
 - Improve blinking issues
 - Removed the changelog from the readme
 
-## [2.4.1]
+## [2.4.2]
 
 - Show more details for Typescript issues no more `[svelte-preprocess] Encountered type error`
 - Fix unresolved svelte/internal when no node_modules folder present in project

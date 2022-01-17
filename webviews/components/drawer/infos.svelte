@@ -37,7 +37,7 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
-    <h4>2.4.1</h4>
+    <h4>2.4.2</h4>
     <ul>
       <li>
         Show more details for Typescript issues no more `[svelte-preprocess]
