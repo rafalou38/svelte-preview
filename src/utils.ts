@@ -1,4 +1,4 @@
-import { existsSync } from "fs";
+import { existsSync, statSync } from "fs";
 import * as path from "path";
 
 export function locateNodeModules(file: string) {
@@ -13,4 +13,10 @@ export function locateNodeModules(file: string) {
     }
   }
   return path.resolve(path.dirname(__filename), "..", "node_modules");
+}
+
+export function statSyncIfExists(path: string) {
+  if (existsSync(path)) {
+    return statSync(path);
+  }
 }

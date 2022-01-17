@@ -11,7 +11,7 @@ import {
   typescript,
 } from "svelte-preprocess";
 import { existsSync, readFileSync } from "fs";
-import { locateNodeModules } from "./utils";
+import { locateNodeModules, statSyncIfExists } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
 import JSON5 from "json5";
@@ -196,7 +196,7 @@ async function walk(
           isNodeModule = true;
         }
       }
-      if (!depPath.includes(".")) {
+      if (!depPath.match(/\.\w+$/)) {
         if (existsSync(depPath + ".js")) {
           depPath += ".js";
         } else if (existsSync(depPath + ".ts")) {
@@ -227,7 +227,7 @@ async function walk(
     let depContent = "";
     if (openDoc) {
       depContent = openDoc.getText();
-    } else if (existsSync(depPath)) {
+    } else if (statSyncIfExists(depPath)?.isFile()) {
       depContent = readFileSync(depPath).toString();
     } else if (!isSource) {
       return {
