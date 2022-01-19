@@ -13,10 +13,12 @@ export function updateVariables(iframe: HTMLIFrameElement | null): void {
   rootComponent.$$.ctx = new Proxy(ctx, {
     set: function (target, key, value) {
       target[key] = value;
-      variables.set(target.slice(0, -1));
+      variables.set(target.filter((v) => typeof v !== "function"));
       return true;
     },
   });
 
-  variables.set(ctx.slice(0, -1));
+  console.log(ctx);
+
+  variables.set(ctx.filter((v) => typeof v !== "function"));
 }

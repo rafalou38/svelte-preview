@@ -49,7 +49,7 @@
   <Pane label="variables">
     <ul>
       {#each $variables as value, i}
-        <Variable name={$code?.vars[i]} {value} />
+        <Variable name={$code?.vars?.[i]} {value} />
       {/each}
     </ul>
   </Pane>

@@ -372,7 +372,7 @@ async function compile(
     let css: string = compiled.css.code;
 
     // get variables from compilation
-    let vars = compiled.vars.filter((e) => e.reassigned).map((e) => e.name);
+    let vars = compiled.vars.filter((e) => e.reassigned || e.mutated).map((e) => e.name);
     return { js, css, err, vars };
   } catch (e) {
     return {
