@@ -81,7 +81,6 @@
   .content {
     flex-grow: 1;
     position: relative;
-    padding: 0.5em;
   }
   .shrink {
     box-sizing: border-box;

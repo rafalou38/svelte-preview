@@ -108,7 +108,7 @@
   }
   ul {
     list-style: none;
-    padding-left: 21px;
+    padding-left: 0;
     margin: 0;
     .var-name {
       color: #c586c0;
