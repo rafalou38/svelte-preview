@@ -6,6 +6,7 @@ export const code = writable<{
   js: {
     [key: string]: string;
   };
+  vars: string[];
   /** images, videos... */
   sources: {
     [key: string]: string;
@@ -34,6 +35,7 @@ export const config = writable({
   rollup: false,
   saveReload: false,
   currentVersion: "0",
+  persistValues: true,
 });
 
 export const locked = writable(true);

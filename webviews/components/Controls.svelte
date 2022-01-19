@@ -118,6 +118,17 @@
         <option value="12">12x</option>
       </select>
     </label>
+    <label
+      for="persist"
+      title="Whether variables should keep their current value on reload."
+    >
+      persist
+      <Switch
+        id="persist"
+        on:change={update}
+        bind:checked={$config.persistValues}
+      />
+    </label>
   </div>
 
   {#if $code?.startTime}
