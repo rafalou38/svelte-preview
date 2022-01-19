@@ -31,6 +31,7 @@ export async function generate(
         return {
           js: {},
           css: "",
+          vars: [],
           err: [
             {
               start: {
@@ -93,6 +94,7 @@ new App({
     return {
       js: {},
       css: "",
+      vars: [],
       err: [
         {
           start: {

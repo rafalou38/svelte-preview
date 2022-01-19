@@ -7,6 +7,7 @@ declare var acquireVsCodeApi: () => {
 };
 interface IResult {
   startTime?: number;
+  vars: string[];
   js: {
     [key: string]: string;
   };

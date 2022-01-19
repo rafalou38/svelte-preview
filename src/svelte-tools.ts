@@ -45,6 +45,7 @@ export async function generate(
     js: {},
     css: "",
     err: [],
+    vars: [],
     sourceMap: {},
     sources: {},
   };
@@ -65,6 +66,7 @@ export async function generate(
   final.sourceMap[">svelte/internal"] = "svelte/internal";
   final.js[">svelte/internal"] = svelteCode;
   final.css += result.css || "";
+  final.vars = result.vars;
 
   // Find Node modules
   nodeModules = locateNodeModules(filename);
@@ -76,11 +78,13 @@ export async function generate(
     uri,
     transformModule.bind(webview)
   );
+
   if (error && error.code === "MODULE_NOT_FOUND") {
     return {
       js: {},
       sources: {},
       css: "",
+      vars: [],
       err: [
         {
           message: `module not found: ${error.value}`,
@@ -325,6 +329,7 @@ async function compile(
       return {
         js: "",
         css: "",
+        vars: [],
         err: [
           {
             start: {
@@ -351,7 +356,7 @@ async function compile(
       js = js.replace(
         /\nexport default .+/,
         `
-				new Component({
+				window.rootComponent = new Component({
 					target: document.querySelector("${target}")
 				})
 			`
@@ -359,11 +364,15 @@ async function compile(
     }
     // get css from compilation
     let css: string = compiled.css.code;
-    return { js, css, err };
+
+    // get variables from compilation
+    let vars = compiled.vars.filter((e) => e.reassigned).map((e) => e.name);
+    return { js, css, err, vars };
   } catch (e) {
     return {
       js: "",
       css: "",
+      vars: [],
       err: [
         {
           start: {
