@@ -3,33 +3,36 @@
   import "./global.css";
   import Drawer from "./drawer/drawer.svelte";
   import { transformModulesToBlobURLS } from "./modulesHandler";
+  // import { updateVariables } from "./persist/persist";
   import {
     code,
     config,
     InternalsourceMap,
     log,
     preservelog,
+    previewIframe,
     vscode,
   } from "./stores";
+  import SideBar from "./persist/SideBar.svelte";
+  import { updateVariables } from "./persist/persist";
   if (!$code) {
     $vscode?.postMessage({ type: "actualize", value: "" });
   }
 
-  let iframe: HTMLIFrameElement;
-
-  $: if (iframe && $code) injectPreviewInIframe();
+  $: if ($previewIframe && $code) injectPreviewInIframe();
 
   function dataUrl(content: string) {
     return URL.createObjectURL(new Blob([content]));
   }
   async function injectPreviewInIframe() {
-    iframe.contentWindow?.location.reload();
+    if (!$previewIframe) return;
+    $previewIframe.contentWindow?.location.reload();
 
-    await new Promise((resolve) => (iframe.onload = resolve));
+    await new Promise((resolve) => ($previewIframe!.onload = resolve));
 
     if ($code?.err.length !== 0) return;
 
-    const IBody = iframe.contentDocument?.body;
+    const IBody = $previewIframe.contentDocument?.body;
     if (!IBody) return console.error("contentDocument does not have a body");
 
     const root = document.createElement("div");
@@ -93,11 +96,13 @@
     if (!$preservelog) {
       $log = [];
     }
+
+    // updateVariables($previewIframe);
   }
 
   function applyConfig() {
-    if (iframe?.contentDocument) {
-      const IBody = iframe?.contentDocument?.body;
+    if ($previewIframe?.contentDocument) {
+      const IBody = $previewIframe?.contentDocument?.body;
       const root = IBody?.querySelector(".root") as HTMLDivElement;
       if (root) {
         IBody.style.display = $config.center ? "grid" : "";
@@ -114,12 +119,29 @@
   }
 
   $: $config, applyConfig();
+
+  window.addEventListener("message", (event) => {
+    if (!event.origin.startsWith("vscode-webview://"))
+      return console.warn("wrong origin: " + event.origin);
+
+    switch (event.data.type) {
+      case "rendered":
+        updateVariables($previewIframe);
+        break;
+
+      default:
+        break;
+    }
+  });
 </script>
 
 <div class="wrapper">
   <Controls />
-  <div class="preview" style={$config.activeBg ? `--bg: ${$config.bg}` : ""}>
-    <iframe title="preview" bind:this={iframe} />
+  <div class="sideBarWrapper">
+    <div class="preview" style={$config.activeBg ? `--bg: ${$config.bg}` : ""}>
+      <iframe title="preview" bind:this={$previewIframe} />
+    </div>
+    <SideBar />
   </div>
   <Drawer />
 </div>
@@ -158,5 +180,11 @@
       width: 100%;
       height: 100%;
     }
+  }
+  .sideBarWrapper {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
   }
 </style>

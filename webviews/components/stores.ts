@@ -1,4 +1,5 @@
 import { writable } from "svelte/store";
+import { updateVariables } from "./persist/persist";
 import type { CompileError } from "./types";
 
 export const vscode = writable<WebviewApi | null>(acquireVsCodeApi());
@@ -15,6 +16,7 @@ export const code = writable<{
   err: CompileError[];
   startTime?: number;
 } | null>();
+export const previewIframe = writable<HTMLIFrameElement | null>(null);
 
 export const InternalsourceMap = writable<{
   [key: string]: string;

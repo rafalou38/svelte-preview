@@ -359,6 +359,12 @@ async function compile(
 				window.rootComponent = new Component({
 					target: document.querySelector("${target}")
 				})
+        window.parent.postMessage(
+						{
+							type: 'rendered',
+						},
+						"*"
+					);
 			`
       );
     }
