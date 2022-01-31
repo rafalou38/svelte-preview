@@ -294,7 +294,6 @@ export class PreviewPanel {
           <link href="${codiconsUri}" rel="stylesheet" />
 				</head>
 				<body>
-        <vscode-button id="howdy">Howdy!</vscode-button>
         <script type="module" src="${toolkitUri}"></script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
