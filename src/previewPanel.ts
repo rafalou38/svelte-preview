@@ -49,6 +49,7 @@ export class PreviewPanel {
           enableScripts: true,
           localResourceRoots: [
             vscode.Uri.joinPath(extensionUri, "out/compiled"),
+            vscode.Uri.joinPath(extensionUri, "node_modules", "@vscode"),
             ...workspaceURIS,
           ],
         }
@@ -251,6 +252,27 @@ export class PreviewPanel {
     const styleMainUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "out", "compiled/preview.css")
     );
+    const toolkitUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "node_modules",
+        "@vscode",
+        "webview-ui-toolkit",
+        "dist",
+        "toolkit.js"
+      )
+    );
+
+    const codiconsUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(
+        this._extensionUri,
+        "node_modules",
+        "@vscode",
+        "codicons",
+        "dist",
+        "codicon.css"
+      )
+    );
 
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
@@ -262,8 +284,11 @@ export class PreviewPanel {
 					<meta http-equiv="Content-Security-Policy" content="img-src https: data: blob:; style-src 'unsafe-inline' ${webview.cspSource};">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<link href="${styleMainUri}" rel="stylesheet">
+          <link href="${codiconsUri}" rel="stylesheet" />
 				</head>
 				<body>
+        <vscode-button id="howdy">Howdy!</vscode-button>
+        <script type="module" src="${toolkitUri}"></script>
 				<script nonce="${nonce}" src="${scriptUri}"></script>
 				</body>
 			</html>`;

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { config, vscode } from "./stores";
+  import Button from "./wrappers/Button.svelte";
+  import Checkbox from "./wrappers/Checkbox.svelte";
+  import TextField from "./wrappers/TextField.svelte";
 
-  export let opened = false;
+  export let opened = true;
 
   function close() {
     $vscode?.postMessage({ type: "editConfig", value: $config });
@@ -17,20 +20,20 @@
     <ul>
       {#each $config.externalStyles as style, i}
         <li>
-          <input type="checkbox" bind:checked={style.enabled} />
-          <input type="text" bind:value={style.link} />
-          <button
+          <Checkbox bind:checked={style.enabled} label="" />
+          <TextField placeholder="url or file path" bind:value={style.link} />
+          <Button
             on:click={() =>
               ($config.externalStyles = $config.externalStyles.filter(
                 (_, j) => i !== j
               ))}
-          >
-            x
-          </button>
+            startIcon="codicon-close"
+            appearance="icon"
+          />
         </li>
       {/each}
     </ul>
-    <button
+    <Button
       on:click={() =>
         ($config.externalStyles = [
           ...$config.externalStyles,
@@ -38,8 +41,9 @@
             enabled: true,
             link: "https://example.com/style.css",
           },
-        ])}>Add</button
-    >
+        ])}
+      label="add"
+    />
   </div>
 </div>
 
@@ -78,6 +82,7 @@
 
   li {
     display: flex;
+    gap: 1em;
   }
   input[type="text"] {
     flex-grow: 1;
