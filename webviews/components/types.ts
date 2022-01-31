@@ -15,3 +15,8 @@ export interface CompileError {
   message: string;
   pos: number;
 }
+
+export interface ExternalStyle {
+  enabled: boolean;
+  link: string;
+}
