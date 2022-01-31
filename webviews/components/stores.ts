@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import type { CompileError } from "./types";
+import type { CompileError, ExternalStyle } from "./types";
 
 export const vscode = writable<WebviewApi | null>(acquireVsCodeApi());
 export const code = writable<{
@@ -34,6 +34,7 @@ export const config = writable({
   rollup: false,
   saveReload: false,
   currentVersion: "0",
+  externalStyles: [] as ExternalStyle[],
 });
 
 export const locked = writable(true);
@@ -59,6 +60,8 @@ window.addEventListener("message", (event) => {
       sourceMapValue = event.data.value.sourceMap;
       break;
     case "setConfig":
+      console.log("got config", event.data.value);
+
       config.set(event.data.value);
       break;
     case "setLock":

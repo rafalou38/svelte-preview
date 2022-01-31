@@ -217,13 +217,19 @@ export class PreviewPanel {
     });
   }
   private async sendConfig() {
-    const config = this.context?.workspaceState.get("svelte-preview-config", {
+    const intitial = {
       center: false,
       bg: "#fff0",
       zoom: "1",
       rollup: false,
       saveReload: false,
-    });
+      externalStyles: [],
+    };
+    const config = {
+      ...intitial,
+      ...this.context?.workspaceState.get("svelte-preview-config", intitial),
+    };
+
     this._panel.webview.postMessage({
       type: "setConfig",
       value: config,
