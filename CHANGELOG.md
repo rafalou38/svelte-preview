@@ -78,3 +78,8 @@
 - Fix unresolved svelte/internal when no node_modules folder present in project
   - preview without svelte installed now possible again
     - No folder opened
+
+## [2.5.0]
+
+- Add external styles support
+  - includes tailwind support

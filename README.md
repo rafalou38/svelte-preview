@@ -83,9 +83,7 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest(2.4.2)
+## latest(2.5.0)
 
-- Show more details for Typescript issues no more `[svelte-preprocess] Encountered type error`
-- Fix unresolved svelte/internal when no node_modules folder present in project
-  - preview without svelte installed now possible again
-    - No folder opened
+- Add external styles support
+  - includes tailwind support

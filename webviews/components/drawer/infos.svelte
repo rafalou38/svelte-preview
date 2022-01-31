@@ -37,6 +37,14 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.5.0</h4>
+    <ul>
+      <li>Add external styles support</li>
+      <ul>
+        <li>includes tailwind support</li>
+      </ul>
+    </ul>
+
     <h4>2.4.2</h4>
     <ul>
       <li>
