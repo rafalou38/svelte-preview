@@ -39,10 +39,22 @@
           ...$config.externalStyles,
           {
             enabled: true,
-            link: "https://example.com/style.css",
+            link: "",
           },
         ])}
       label="add"
+    />
+    <Button
+      on:click={() =>
+        ($config.externalStyles = [
+          ...$config.externalStyles,
+          {
+            enabled: true,
+            link: "https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css",
+          },
+        ])}
+      label="add tailwind"
+      appearance="secondary"
     />
   </div>
 </div>
