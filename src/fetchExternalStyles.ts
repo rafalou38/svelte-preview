@@ -8,7 +8,7 @@ export function fetchExternalStyles(
 ) {
   let css = "";
   for (const style of styles) {
-    if (style.link.startsWith("http")) continue;
+    if (!style.enabled || style.link.startsWith("http")) continue;
     if (existsSync(style.link)) {
       css += readFileSync(style.link).toString();
     }
