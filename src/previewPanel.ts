@@ -4,6 +4,7 @@ import * as svelte from "./svelte-tools";
 import * as rollup from "./rollup-version";
 import * as path from "path";
 import { IResult } from "./ambient";
+import { fetchExternalStyles } from "./fetchExternalStyles";
 
 export class PreviewPanel {
   public static panels = new Map<string, PreviewPanel>();
@@ -211,13 +212,17 @@ export class PreviewPanel {
         ".root"
       );
     }
+    const config = await this._getConfig();
+    if (config.externalStyles?.length > 0) {
+      result.css += fetchExternalStyles(config.externalStyles);
+    }
     result.startTime = startTime;
     this._panel.webview.postMessage({
       type: "codeUpdate",
       value: result,
     });
   }
-  private async sendConfig() {
+  private async _getConfig() {
     const intitial = {
       center: false,
       bg: "#fff0",
@@ -226,10 +231,13 @@ export class PreviewPanel {
       saveReload: false,
       externalStyles: [],
     };
-    const config = {
+    return {
       ...intitial,
       ...this.context?.workspaceState.get("svelte-preview-config", intitial),
     };
+  }
+  private async sendConfig() {
+    const config = await this._getConfig();
 
     this._panel.webview.postMessage({
       type: "setConfig",
@@ -281,7 +289,6 @@ export class PreviewPanel {
 			<html lang="en">
 				<head>
 					<meta charset="UTF-8">
-					<meta http-equiv="Content-Security-Policy" content="img-src https: data: blob:; style-src 'unsafe-inline' ${webview.cspSource};">
 					<meta name="viewport" content="width=device-width, initial-scale=1.0">
 					<link href="${styleMainUri}" rel="stylesheet">
           <link href="${codiconsUri}" rel="stylesheet" />

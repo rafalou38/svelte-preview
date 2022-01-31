@@ -88,6 +88,16 @@
       $code.css;
     IBody.appendChild(style);
 
+    for (const styleLink of $config.externalStyles) {
+      if (!styleLink.enabled) continue;
+
+      const link = document.createElement("link");
+      link.setAttribute("rel", "stylesheet");
+      link.setAttribute("href", styleLink.link);
+
+      IBody.appendChild(link);
+    }
+
     applyConfig();
 
     if (!$preservelog) {
