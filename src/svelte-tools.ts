@@ -167,6 +167,7 @@ async function walk(
     if (depName.startsWith(".")) {
       depPath = path.resolve(path.dirname(filePath), depName);
       const packageJsonPath = path.resolve(depPath, "package.json");
+      // no extension
       if (!depPath.match(/\.\w+$/)) {
         if (existsSync(depPath + ".js")) {
           depPath += ".js";
@@ -179,6 +180,10 @@ async function walk(
             readFileSync(packageJsonPath).toString()
           );
           depPath = path.resolve(depPath, packageJson.module);
+        } else if (existsSync(path.resolve(depPath, "index.js"))) {
+          depPath = path.resolve(depPath, "index.js");
+        } else if (existsSync(path.resolve(depPath, "index.ts"))) {
+          depPath = path.resolve(depPath, "index.ts");
         } else if (!isSource) {
           return {
             code: "NOT_FOUND",

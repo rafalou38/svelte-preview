@@ -50,7 +50,7 @@ export const log = writable<
 >([]);
 
 window.addEventListener("message", (event) => {
-  if (!event.origin.startsWith("vscode-webview://"))
+  if (!event.origin.includes("vscode-webview"))
     return console.warn("wrong origin: " + event.origin);
 
   switch (event.data.type) {
