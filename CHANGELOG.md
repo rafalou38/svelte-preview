@@ -83,3 +83,8 @@
 
 - Add external styles support
   - includes tailwind support
+
+## [2.5.1]
+
+- Fix codespaces support
+- Fix failed import of some modules

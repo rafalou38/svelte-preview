@@ -37,6 +37,11 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.5.1</h4>
+    <ul>
+      <li>Fix codespaces support</li>
+      <li>Fix failed import of some modules</li>
+    </ul>
     <h4>2.5.0</h4>
     <ul>
       <li>Add external styles support</li>
