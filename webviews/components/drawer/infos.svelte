@@ -37,6 +37,15 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.5.2</h4>
+
+    <ul>
+      <li>Upgrade typescript version</li>
+      <ul>
+        <li>fixes `Unknown compiler option 'preserveValueImports'.`</li>
+      </ul>
+    </ul>
+
     <h4>2.5.1</h4>
     <ul>
       <li>Fix codespaces support</li>

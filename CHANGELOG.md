@@ -88,3 +88,8 @@
 
 - Fix codespaces support
 - Fix failed import of some modules
+
+## [2.5.2]
+
+- Upgrade typescript version
+  - fixes `Unknown compiler option 'preserveValueImports'.`
