@@ -365,7 +365,7 @@ async function compile(
     // get css from compilation
     let css: string = compiled.css.code;
     return { js, css, err };
-  } catch (e) {
+  } catch (e: any) {
     return {
       js: "",
       css: "",

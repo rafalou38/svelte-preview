@@ -89,7 +89,7 @@ new App({
     await bundle.close();
 
     return result;
-  } catch (e) {
+  } catch (e: any) {
     return {
       js: {},
       css: "",
