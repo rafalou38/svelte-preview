@@ -269,7 +269,17 @@ function check_aliases(alias: string, modulePath: string) {
   if (!nodeModules) return;
 
   const tsconfigPath = path.join(path.dirname(nodeModules), "tsconfig.json");
-  if (!existsSync(tsconfigPath)) return;
+  if (!existsSync(tsconfigPath)) {
+    if (alias.startsWith("$lib")) {
+      const libPath = alias.replace(
+        "$lib",
+        path.join(path.dirname(nodeModules), "src", "lib")
+      );
+
+      if (existsSync(libPath)) return libPath;
+    }
+    return;
+  }
 
   const tsconfig = JSON5.parse(readFileSync(tsconfigPath).toString());
   const aliases = (tsconfig?.compilerOptions?.paths || {}) as {
