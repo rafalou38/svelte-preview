@@ -83,7 +83,6 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest(2.5.0)
+## latest(2.5.3)
 
-- Add external styles support
-  - includes tailwind support
+- Add $lib fallback for when tsconfig.json is not used 

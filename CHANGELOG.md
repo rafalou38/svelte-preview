@@ -93,3 +93,7 @@
 
 - Upgrade typescript version
   - fixes `Unknown compiler option 'preserveValueImports'.`
+
+## [2.5.3]
+
+- Add $lib fallback for when tsconfig.json is not used 

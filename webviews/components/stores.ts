@@ -25,7 +25,7 @@ let sourceMapValue: {
   [key: string]: string;
 };
 
-export const CURRENT_VERSION = "2.5.2";
+export const CURRENT_VERSION = "2.5.3";
 export const config = writable({
   center: false,
   activeBg: false,
