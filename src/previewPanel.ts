@@ -190,11 +190,10 @@ export class PreviewPanel {
   private async sendCode() {
     const startTime = Date.now();
     const { rollup: useRollup } = this.context?.workspaceState.get(
-      "svelte-preview-config",
-      {
-        rollup: false,
-      }
-    );
+      "svelte-preview-config"
+    ) || {
+      rollup: false,
+    };
     let result: IResult | undefined;
     if (useRollup) {
       result = await rollup.generate(
