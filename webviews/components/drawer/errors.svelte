@@ -25,7 +25,7 @@
             </span>
           {/if}
           <span class="message">
-            {error.message}
+            {@html error.message}
           </span>
           <span class="dim">
             [{error.start.column}:{error.start.line}]
