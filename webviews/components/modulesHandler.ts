@@ -1,12 +1,13 @@
 let sourceMap: {
   [key: string]: string;
 } = {};
-
+let cache: Map<string, string>;
 export async function transformModulesToBlobURLS(
   js: { [key: string]: string },
   sources: { [key: string]: string }
 ) {
   sourceMap = {};
+  cache = new Map();
   const mainModule = js[""];
   const mainModuleURI = await parse(mainModule, js, sources, "");
   sourceMap[mainModuleURI] = "";
@@ -31,13 +32,15 @@ async function parse(
     const imported = js[moduleURI];
     const fileURL = sources[moduleURI];
     if (imported) {
-      const globURI = await parse(
-        imported,
-        js,
-        sources,
-        walkUri + ">" + match[0]
-      );
-      sourceMap[globURI] = walkUri + ">" + match[0];
+      let globURI: string;
+      if (imported.startsWith(">") && cache.has(imported)) {
+        // null-assertion because presence already verified
+        globURI = cache.get(imported)!;
+      } else {
+        globURI = await parse(imported, js, sources, walkUri + ">" + match[0]);
+        cache.set(walkUri + ">" + match[0], globURI);
+        sourceMap[globURI] = walkUri + ">" + match[0];
+      }
       code = regexReplace(code, match, globURI);
       code.slice();
     } else if (fileURL) {

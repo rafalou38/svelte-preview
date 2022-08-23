@@ -32,6 +32,8 @@ const preprocessorList = [
 ];
 
 let final: IResult;
+let modulesCache: Map<string, string>;
+
 export async function generate(
   webview: vscode.Webview,
   code: string,
@@ -41,6 +43,7 @@ export async function generate(
   autoInsert = false,
   target = "body"
 ): Promise<IResult> {
+  modulesCache = new Map();
   final = {
     js: {},
     css: "",
@@ -106,7 +109,18 @@ async function transformModule(
   isNodeModule: boolean
 ) {
   final.sourceMap[uri] = modulePath;
+
+  // Check if module is already included
+  const cached = modulesCache.get(modulePath);
+  if (cached) {
+    final.js[uri] = cached;
+    return;
+  } else {
+    modulesCache.set(modulePath, uri);
+  }
+
   if (modulePath.endsWith(".svelte")) {
+    // Svelte module
     const result = await compile(content, modulePath, false, false);
 
     final.err = [...final.err, ...result.err];
@@ -114,14 +128,17 @@ async function transformModule(
     final.css += result.css || "";
     return result.js;
   } else if (modulePath.endsWith(".js") || modulePath.endsWith(".mjs")) {
+    // JS module
     final.js[uri] = content;
     return content;
   } else if (modulePath.endsWith(".ts")) {
+    // TS module
     const js = ts.transpileModule(content, {
       compilerOptions: { module: 6, target: 1, strict: false },
     });
     final.js[uri] = js.outputText;
   } else {
+    // I think this is for assets, I don't remember xD 
     const moduleURI = this.asWebviewUri(vscode.Uri.file(modulePath));
     final.sources[uri] = moduleURI.toString();
   }
