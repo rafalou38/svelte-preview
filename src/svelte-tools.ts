@@ -57,8 +57,9 @@ export async function generate(
     target
   );
 
-  if (result.err.length !== 0)
-    return { js: {}, css: "", err: result.err, sourceMap: {}, sources: {} };
+  final.err = result.err;
+  // if (result.err.length !== 0)
+  //   return { js: {}, css: "", err: result.err, sourceMap: {}, sources: {} };
 
   final.sourceMap[""] = filename;
   final.js[""] = result.js;
