@@ -65,7 +65,7 @@
 
 ## [2.4.0]
 
-- add description tooltips to each switch 
+- add description tooltips to each switch
 - Add option to only reload on save
 - Reorganise switches order
 - disable error shown for unused css selector
@@ -96,4 +96,9 @@
 
 ## [2.5.3]
 
-- Add $lib fallback for when tsconfig.json is not used 
+- Add $lib fallback for when tsconfig.json is not used
+
+## [2.5.4]
+
+- Bump typescript version
+- Show ansi errors as html

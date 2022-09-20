@@ -83,6 +83,7 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest(2.5.3)
+## latest(2.5.4)
 
-- Add $lib fallback for when tsconfig.json is not used 
+- Bump typescript version
+- Show ansi errors as html

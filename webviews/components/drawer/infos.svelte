@@ -37,7 +37,14 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
-    <h4>2.5.3</h4>
+    <h4>2.5.4</h4>
+
+    <ul>
+      <li>Bump typescript version</li>
+      <li>Show ansi errors as html</li>
+    </ul>
+    
+    <h4>2.5.3</h4>  
 
     <ul>
       <li>Add $lib fallback for when tsconfig.json is not used </li>

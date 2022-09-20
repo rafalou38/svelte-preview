@@ -5,6 +5,9 @@ import * as rollup from "./rollup-version";
 import * as path from "path";
 import { IResult } from "./ambient";
 import { fetchExternalStyles } from "./fetchExternalStyles";
+import ANSIToHtml from "ansi-to-html";
+
+const ansiToHtml = new ANSIToHtml();
 
 export class PreviewPanel {
   public static panels = new Map<string, PreviewPanel>();
@@ -212,6 +215,13 @@ export class PreviewPanel {
         ".root"
       );
     }
+    // Convert errors esc colors to html
+
+    result.err = result.err.map((err) => ({
+      ...err,
+      message: ansiToHtml.toHtml(err.message),
+    }));
+
     const config = await this._getConfig();
     if (config.externalStyles?.length > 0) {
       result.css += fetchExternalStyles(config.externalStyles);
