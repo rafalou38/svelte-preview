@@ -102,7 +102,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.32.7",
     "stylus": "^0.54.8",
-    "svelte": "^3.34.0",
+    "svelte": "^3.50.1",
     "svelte-json-tree": "^0.1.0",
     "svelte-preprocess": "^4.7.3",
     "typescript": "^4.6.2"
