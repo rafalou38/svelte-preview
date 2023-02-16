@@ -5,8 +5,14 @@ function assign(tar, src) {
   for (const k in src) tar[k] = src[k];
   return tar;
 }
+// Adapted from https://github.com/then/is-promise/blob/master/index.js
+// Distributed under MIT License https://github.com/then/is-promise/blob/master/LICENSE
 function is_promise(value) {
-  return value && typeof value === "object" && typeof value.then === "function";
+  return (
+    !!value &&
+    (typeof value === "object" || typeof value === "function") &&
+    typeof value.then === "function"
+  );
 }
 function add_location(element, file, line, column, char) {
   element.__svelte_meta = {
@@ -29,6 +35,14 @@ function safe_not_equal(a, b) {
   return a != a
     ? b == b
     : a !== b || (a && typeof a === "object") || typeof a === "function";
+}
+let src_url_equal_anchor;
+function src_url_equal(element_src, url) {
+  if (!src_url_equal_anchor) {
+    src_url_equal_anchor = document.createElement("a");
+  }
+  src_url_equal_anchor.href = url;
+  return element_src === src_url_equal_anchor.href;
 }
 function not_equal(a, b) {
   return a != a ? b == b : a !== b;
@@ -85,6 +99,24 @@ function get_slot_changes(definition, $$scope, dirty, fn) {
   }
   return $$scope.dirty;
 }
+function update_slot_base(
+  slot,
+  slot_definition,
+  ctx,
+  $$scope,
+  slot_changes,
+  get_slot_context_fn
+) {
+  if (slot_changes) {
+    const slot_context = get_slot_context(
+      slot_definition,
+      ctx,
+      $$scope,
+      get_slot_context_fn
+    );
+    slot.p(slot_context, slot_changes);
+  }
+}
 function update_slot(
   slot,
   slot_definition,
@@ -100,38 +132,25 @@ function update_slot(
     dirty,
     get_slot_changes_fn
   );
-  if (slot_changes) {
-    const slot_context = get_slot_context(
-      slot_definition,
-      ctx,
-      $$scope,
-      get_slot_context_fn
-    );
-    slot.p(slot_context, slot_changes);
-  }
+  update_slot_base(
+    slot,
+    slot_definition,
+    ctx,
+    $$scope,
+    slot_changes,
+    get_slot_context_fn
+  );
 }
-function update_slot_spread(
-  slot,
-  slot_definition,
-  ctx,
-  $$scope,
-  dirty,
-  get_slot_changes_fn,
-  get_slot_spread_changes_fn,
-  get_slot_context_fn
-) {
-  const slot_changes =
-    get_slot_spread_changes_fn(dirty) |
-    get_slot_changes(slot_definition, $$scope, dirty, get_slot_changes_fn);
-  if (slot_changes) {
-    const slot_context = get_slot_context(
-      slot_definition,
-      ctx,
-      $$scope,
-      get_slot_context_fn
-    );
-    slot.p(slot_context, slot_changes);
+function get_all_dirty_from_scope($$scope) {
+  if ($$scope.ctx.length > 32) {
+    const dirty = [];
+    const length = $$scope.ctx.length / 32;
+    for (let i = 0; i < length; i++) {
+      dirty[i] = -1;
+    }
+    return dirty;
   }
+  return -1;
 }
 function exclude_internal_props(props) {
   const result = {};
@@ -162,7 +181,7 @@ function once(fn) {
 function null_to_empty(value) {
   return value == null ? "" : value;
 }
-function set_store_value(store, ret, value = ret) {
+function set_store_value(store, ret, value) {
   store.set(value);
   return ret;
 }
@@ -217,14 +236,185 @@ function loop(callback) {
   };
 }
 
+// Track which nodes are claimed during hydration. Unclaimed nodes can then be removed from the DOM
+// at the end of hydration without touching the remaining nodes.
+let is_hydrating = false;
+function start_hydrating() {
+  is_hydrating = true;
+}
+function end_hydrating() {
+  is_hydrating = false;
+}
+function upper_bound(low, high, key, value) {
+  // Return first index of value larger than input value in the range [low, high)
+  while (low < high) {
+    const mid = low + ((high - low) >> 1);
+    if (key(mid) <= value) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return low;
+}
+function init_hydrate(target) {
+  if (target.hydrate_init) return;
+  target.hydrate_init = true;
+  // We know that all children have claim_order values since the unclaimed have been detached if target is not <head>
+  let children = target.childNodes;
+  // If target is <head>, there may be children without claim_order
+  if (target.nodeName === "HEAD") {
+    const myChildren = [];
+    for (let i = 0; i < children.length; i++) {
+      const node = children[i];
+      if (node.claim_order !== undefined) {
+        myChildren.push(node);
+      }
+    }
+    children = myChildren;
+  }
+  /*
+   * Reorder claimed children optimally.
+   * We can reorder claimed children optimally by finding the longest subsequence of
+   * nodes that are already claimed in order and only moving the rest. The longest
+   * subsequence of nodes that are claimed in order can be found by
+   * computing the longest increasing subsequence of .claim_order values.
+   *
+   * This algorithm is optimal in generating the least amount of reorder operations
+   * possible.
+   *
+   * Proof:
+   * We know that, given a set of reordering operations, the nodes that do not move
+   * always form an increasing subsequence, since they do not move among each other
+   * meaning that they must be already ordered among each other. Thus, the maximal
+   * set of nodes that do not move form a longest increasing subsequence.
+   */
+  // Compute longest increasing subsequence
+  // m: subsequence length j => index k of smallest value that ends an increasing subsequence of length j
+  const m = new Int32Array(children.length + 1);
+  // Predecessor indices + 1
+  const p = new Int32Array(children.length);
+  m[0] = -1;
+  let longest = 0;
+  for (let i = 0; i < children.length; i++) {
+    const current = children[i].claim_order;
+    // Find the largest subsequence length such that it ends in a value less than our current value
+    // upper_bound returns first greater value, so we subtract one
+    // with fast path for when we are on the current longest subsequence
+    const seqLen =
+      (longest > 0 && children[m[longest]].claim_order <= current
+        ? longest + 1
+        : upper_bound(
+            1,
+            longest,
+            (idx) => children[m[idx]].claim_order,
+            current
+          )) - 1;
+    p[i] = m[seqLen] + 1;
+    const newLen = seqLen + 1;
+    // We can guarantee that current is the smallest value. Otherwise, we would have generated a longer sequence.
+    m[newLen] = i;
+    longest = Math.max(newLen, longest);
+  }
+  // The longest increasing subsequence of nodes (initially reversed)
+  const lis = [];
+  // The rest of the nodes, nodes that will be moved
+  const toMove = [];
+  let last = children.length - 1;
+  for (let cur = m[longest] + 1; cur != 0; cur = p[cur - 1]) {
+    lis.push(children[cur - 1]);
+    for (; last >= cur; last--) {
+      toMove.push(children[last]);
+    }
+    last--;
+  }
+  for (; last >= 0; last--) {
+    toMove.push(children[last]);
+  }
+  lis.reverse();
+  // We sort the nodes being moved to guarantee that their insertion order matches the claim order
+  toMove.sort((a, b) => a.claim_order - b.claim_order);
+  // Finally, we move the nodes
+  for (let i = 0, j = 0; i < toMove.length; i++) {
+    while (j < lis.length && toMove[i].claim_order >= lis[j].claim_order) {
+      j++;
+    }
+    const anchor = j < lis.length ? lis[j] : null;
+    target.insertBefore(toMove[i], anchor);
+  }
+}
 function append(target, node) {
   target.appendChild(node);
+}
+function append_styles(target, style_sheet_id, styles) {
+  const append_styles_to = get_root_for_style(target);
+  if (!append_styles_to.getElementById(style_sheet_id)) {
+    const style = element("style");
+    style.id = style_sheet_id;
+    style.textContent = styles;
+    append_stylesheet(append_styles_to, style);
+  }
+}
+function get_root_for_style(node) {
+  if (!node) return document;
+  const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+  if (root && root.host) {
+    return root;
+  }
+  return node.ownerDocument;
+}
+function append_empty_stylesheet(node) {
+  const style_element = element("style");
+  append_stylesheet(get_root_for_style(node), style_element);
+  return style_element.sheet;
+}
+function append_stylesheet(node, style) {
+  append(node.head || node, style);
+  return style.sheet;
+}
+function append_hydration(target, node) {
+  if (is_hydrating) {
+    init_hydrate(target);
+    if (
+      target.actual_end_child === undefined ||
+      (target.actual_end_child !== null &&
+        target.actual_end_child.parentNode !== target)
+    ) {
+      target.actual_end_child = target.firstChild;
+    }
+    // Skip nodes of undefined ordering
+    while (
+      target.actual_end_child !== null &&
+      target.actual_end_child.claim_order === undefined
+    ) {
+      target.actual_end_child = target.actual_end_child.nextSibling;
+    }
+    if (node !== target.actual_end_child) {
+      // We only insert if the ordering of this node should be modified or the parent node is not target
+      if (node.claim_order !== undefined || node.parentNode !== target) {
+        target.insertBefore(node, target.actual_end_child);
+      }
+    } else {
+      target.actual_end_child = node.nextSibling;
+    }
+  } else if (node.parentNode !== target || node.nextSibling !== null) {
+    target.appendChild(node);
+  }
 }
 function insert(target, node, anchor) {
   target.insertBefore(node, anchor || null);
 }
+function insert_hydration(target, node, anchor) {
+  if (is_hydrating && !anchor) {
+    append_hydration(target, node);
+  } else if (node.parentNode !== target || node.nextSibling != anchor) {
+    target.insertBefore(node, anchor || null);
+  }
+}
 function detach(node) {
-  node.parentNode.removeChild(node);
+  if (node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
 }
 function destroy_each(iterations, detaching) {
   for (let i = 0; i < iterations.length; i += 1) {
@@ -287,6 +477,12 @@ function self(fn) {
     if (event.target === this) fn.call(this, event);
   };
 }
+function trusted(fn) {
+  return function (event) {
+    // @ts-ignore
+    if (event.isTrusted) fn.call(this, event);
+  };
+}
 function attr(node, attribute, value) {
   if (value == null) node.removeAttribute(attribute);
   else if (node.getAttribute(attribute) !== value)
@@ -314,9 +510,14 @@ function set_svg_attributes(node, attributes) {
     attr(node, key, attributes[key]);
   }
 }
+function set_custom_element_data_map(node, data_map) {
+  Object.keys(data_map).forEach((key) => {
+    set_custom_element_data(node, key, data_map[key]);
+  });
+}
 function set_custom_element_data(node, prop, value) {
   if (prop in node) {
-    node[prop] = value;
+    node[prop] = typeof node[prop] === "boolean" && value === "" ? true : value;
   } else {
     attr(node, prop, value);
   }
@@ -347,38 +548,138 @@ function time_ranges_to_array(ranges) {
 function children(element) {
   return Array.from(element.childNodes);
 }
-function claim_element(nodes, name, attributes, svg) {
-  for (let i = 0; i < nodes.length; i += 1) {
-    const node = nodes[i];
-    if (node.nodeName === name) {
-      let j = 0;
+function init_claim_info(nodes) {
+  if (nodes.claim_info === undefined) {
+    nodes.claim_info = { last_index: 0, total_claimed: 0 };
+  }
+}
+function claim_node(
+  nodes,
+  predicate,
+  processNode,
+  createNode,
+  dontUpdateLastIndex = false
+) {
+  // Try to find nodes in an order such that we lengthen the longest increasing subsequence
+  init_claim_info(nodes);
+  const resultNode = (() => {
+    // We first try to find an element after the previous one
+    for (let i = nodes.claim_info.last_index; i < nodes.length; i++) {
+      const node = nodes[i];
+      if (predicate(node)) {
+        const replacement = processNode(node);
+        if (replacement === undefined) {
+          nodes.splice(i, 1);
+        } else {
+          nodes[i] = replacement;
+        }
+        if (!dontUpdateLastIndex) {
+          nodes.claim_info.last_index = i;
+        }
+        return node;
+      }
+    }
+    // Otherwise, we try to find one before
+    // We iterate in reverse so that we don't go too far back
+    for (let i = nodes.claim_info.last_index - 1; i >= 0; i--) {
+      const node = nodes[i];
+      if (predicate(node)) {
+        const replacement = processNode(node);
+        if (replacement === undefined) {
+          nodes.splice(i, 1);
+        } else {
+          nodes[i] = replacement;
+        }
+        if (!dontUpdateLastIndex) {
+          nodes.claim_info.last_index = i;
+        } else if (replacement === undefined) {
+          // Since we spliced before the last_index, we decrease it
+          nodes.claim_info.last_index--;
+        }
+        return node;
+      }
+    }
+    // If we can't find any matching node, we create a new one
+    return createNode();
+  })();
+  resultNode.claim_order = nodes.claim_info.total_claimed;
+  nodes.claim_info.total_claimed += 1;
+  return resultNode;
+}
+function claim_element_base(nodes, name, attributes, create_element) {
+  return claim_node(
+    nodes,
+    (node) => node.nodeName === name,
+    (node) => {
       const remove = [];
-      while (j < node.attributes.length) {
-        const attribute = node.attributes[j++];
+      for (let j = 0; j < node.attributes.length; j++) {
+        const attribute = node.attributes[j];
         if (!attributes[attribute.name]) {
           remove.push(attribute.name);
         }
       }
-      for (let k = 0; k < remove.length; k++) {
-        node.removeAttribute(remove[k]);
-      }
-      return nodes.splice(i, 1)[0];
-    }
-  }
-  return svg ? svg_element(name) : element(name);
+      remove.forEach((v) => node.removeAttribute(v));
+      return undefined;
+    },
+    () => create_element(name)
+  );
+}
+function claim_element(nodes, name, attributes) {
+  return claim_element_base(nodes, name, attributes, element);
+}
+function claim_svg_element(nodes, name, attributes) {
+  return claim_element_base(nodes, name, attributes, svg_element);
 }
 function claim_text(nodes, data) {
-  for (let i = 0; i < nodes.length; i += 1) {
-    const node = nodes[i];
-    if (node.nodeType === 3) {
-      node.data = "" + data;
-      return nodes.splice(i, 1)[0];
-    }
-  }
-  return text(data);
+  return claim_node(
+    nodes,
+    (node) => node.nodeType === 3,
+    (node) => {
+      const dataStr = "" + data;
+      if (node.data.startsWith(dataStr)) {
+        if (node.data.length !== dataStr.length) {
+          return node.splitText(dataStr.length);
+        }
+      } else {
+        node.data = dataStr;
+      }
+    },
+    () => text(data),
+    true // Text nodes should not update last index since it is likely not worth it to eliminate an increasing subsequence of actual elements
+  );
 }
 function claim_space(nodes) {
   return claim_text(nodes, " ");
+}
+function find_comment(nodes, text, start) {
+  for (let i = start; i < nodes.length; i += 1) {
+    const node = nodes[i];
+    if (
+      node.nodeType === 8 /* comment node */ &&
+      node.textContent.trim() === text
+    ) {
+      return i;
+    }
+  }
+  return nodes.length;
+}
+function claim_html_tag(nodes, is_svg) {
+  // find html opening tag
+  const start_index = find_comment(nodes, "HTML_TAG_START", 0);
+  const end_index = find_comment(nodes, "HTML_TAG_END", start_index);
+  if (start_index === end_index) {
+    return new HtmlTagHydration(undefined, is_svg);
+  }
+  init_claim_info(nodes);
+  const html_tag_nodes = nodes.splice(start_index, end_index - start_index + 1);
+  detach(html_tag_nodes[0]);
+  detach(html_tag_nodes[html_tag_nodes.length - 1]);
+  const claimed_nodes = html_tag_nodes.slice(1, html_tag_nodes.length - 1);
+  for (const n of claimed_nodes) {
+    n.claim_order = nodes.claim_info.total_claimed;
+    nodes.claim_info.total_claimed += 1;
+  }
+  return new HtmlTagHydration(claimed_nodes, is_svg);
 }
 function set_data(text, data) {
   data = "" + data;
@@ -395,7 +696,11 @@ function set_input_type(input, type) {
   }
 }
 function set_style(node, key, value, important) {
-  node.style.setProperty(key, value, important ? "important" : "");
+  if (value === null) {
+    node.style.removeProperty(key);
+  } else {
+    node.style.setProperty(key, value, important ? "important" : "");
+  }
 }
 function select_option(select, value) {
   for (let i = 0; i < select.options.length; i += 1) {
@@ -405,6 +710,7 @@ function select_option(select, value) {
       return;
     }
   }
+  select.selectedIndex = -1; // no option should be selected
 }
 function select_options(select, value) {
   for (let i = 0; i < select.options.length; i += 1) {
@@ -478,24 +784,52 @@ function add_resize_listener(node, fn) {
 function toggle_class(element, name, toggle) {
   element.classList[toggle ? "add" : "remove"](name);
 }
-function custom_event(type, detail) {
+function custom_event(
+  type,
+  detail,
+  { bubbles = false, cancelable = false } = {}
+) {
   const e = document.createEvent("CustomEvent");
-  e.initCustomEvent(type, false, false, detail);
+  e.initCustomEvent(type, bubbles, cancelable, detail);
   return e;
 }
 function query_selector_all(selector, parent = document.body) {
   return Array.from(parent.querySelectorAll(selector));
 }
+function head_selector(nodeId, head) {
+  const result = [];
+  let started = 0;
+  for (const node of head.childNodes) {
+    if (node.nodeType === 8 /* comment node */) {
+      const comment = node.textContent.trim();
+      if (comment === `HEAD_${nodeId}_END`) {
+        started -= 1;
+        result.push(node);
+      } else if (comment === `HEAD_${nodeId}_START`) {
+        started += 1;
+        result.push(node);
+      }
+    } else if (started > 0) {
+      result.push(node);
+    }
+  }
+  return result;
+}
 class HtmlTag {
-  constructor(anchor = null) {
-    this.a = anchor;
+  constructor(is_svg = false) {
+    this.is_svg = false;
+    this.is_svg = is_svg;
     this.e = this.n = null;
+  }
+  c(html) {
+    this.h(html);
   }
   m(html, target, anchor = null) {
     if (!this.e) {
-      this.e = element(target.nodeName);
+      if (this.is_svg) this.e = svg_element(target.nodeName);
+      else this.e = element(target.nodeName);
       this.t = target;
-      this.h(html);
+      this.c(html);
     }
     this.i(anchor);
   }
@@ -517,6 +851,25 @@ class HtmlTag {
     this.n.forEach(detach);
   }
 }
+class HtmlTagHydration extends HtmlTag {
+  constructor(claimed_nodes, is_svg = false) {
+    super(is_svg);
+    this.e = this.n = null;
+    this.l = claimed_nodes;
+  }
+  c(html) {
+    if (this.l) {
+      this.n = this.l;
+    } else {
+      super.c(html);
+    }
+  }
+  i(anchor) {
+    for (let i = 0; i < this.n.length; i += 1) {
+      insert_hydration(this.t, this.n[i], anchor);
+    }
+  }
+}
 function attribute_to_object(attributes) {
   const result = {};
   for (const attribute of attributes) {
@@ -531,8 +884,13 @@ function get_custom_elements_slots(element) {
   });
   return result;
 }
+function construct_svelte_component(component, props) {
+  return new component(props);
+}
 
-const active_docs = new Set();
+// we need to store the information for multiple documents because a Svelte application could also contain iframes
+// https://github.com/sveltejs/svelte/issues/3624
+const managed_styles = new Map();
 let active = 0;
 // https://github.com/darkskyapp/string-hash/blob/master/index.js
 function hash(str) {
@@ -540,6 +898,11 @@ function hash(str) {
   let i = str.length;
   while (i--) hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
   return hash >>> 0;
+}
+function create_style_information(doc, node) {
+  const info = { stylesheet: append_empty_stylesheet(node), rules: {} };
+  managed_styles.set(doc, info);
+  return info;
 }
 function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
   const step = 16.666 / duration;
@@ -550,14 +913,11 @@ function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
   }
   const rule = keyframes + `100% {${fn(b, 1 - b)}}\n}`;
   const name = `__svelte_${hash(rule)}_${uid}`;
-  const doc = node.ownerDocument;
-  active_docs.add(doc);
-  const stylesheet =
-    doc.__svelte_stylesheet ||
-    (doc.__svelte_stylesheet = doc.head.appendChild(element("style")).sheet);
-  const current_rules = doc.__svelte_rules || (doc.__svelte_rules = {});
-  if (!current_rules[name]) {
-    current_rules[name] = true;
+  const doc = get_root_for_style(node);
+  const { stylesheet, rules } =
+    managed_styles.get(doc) || create_style_information(doc, node);
+  if (!rules[name]) {
+    rules[name] = true;
     stylesheet.insertRule(
       `@keyframes ${name} ${rule}`,
       stylesheet.cssRules.length
@@ -587,13 +947,12 @@ function delete_rule(node, name) {
 function clear_rules() {
   raf(() => {
     if (active) return;
-    active_docs.forEach((doc) => {
-      const stylesheet = doc.__svelte_stylesheet;
-      let i = stylesheet.cssRules.length;
-      while (i--) stylesheet.deleteRule(i);
-      doc.__svelte_rules = {};
+    managed_styles.forEach((info) => {
+      const { ownerNode } = info.stylesheet;
+      // there is no ownerNode if it runs on jsdom.
+      if (ownerNode) detach(ownerNode);
     });
-    active_docs.clear();
+    managed_styles.clear();
   });
 }
 
@@ -686,38 +1045,113 @@ function get_current_component() {
     throw new Error("Function called outside component initialization");
   return current_component;
 }
+/**
+ * Schedules a callback to run immediately before the component is updated after any state change.
+ *
+ * The first time the callback runs will be before the initial `onMount`
+ *
+ * https://svelte.dev/docs#run-time-svelte-beforeupdate
+ */
 function beforeUpdate(fn) {
   get_current_component().$$.before_update.push(fn);
 }
+/**
+ * The `onMount` function schedules a callback to run as soon as the component has been mounted to the DOM.
+ * It must be called during the component's initialisation (but doesn't need to live *inside* the component;
+ * it can be called from an external module).
+ *
+ * `onMount` does not run inside a [server-side component](/docs#run-time-server-side-component-api).
+ *
+ * https://svelte.dev/docs#run-time-svelte-onmount
+ */
 function onMount(fn) {
   get_current_component().$$.on_mount.push(fn);
 }
+/**
+ * Schedules a callback to run immediately after the component has been updated.
+ *
+ * The first time the callback runs will be after the initial `onMount`
+ */
 function afterUpdate(fn) {
   get_current_component().$$.after_update.push(fn);
 }
+/**
+ * Schedules a callback to run immediately before the component is unmounted.
+ *
+ * Out of `onMount`, `beforeUpdate`, `afterUpdate` and `onDestroy`, this is the
+ * only one that runs inside a server-side component.
+ *
+ * https://svelte.dev/docs#run-time-svelte-ondestroy
+ */
 function onDestroy(fn) {
   get_current_component().$$.on_destroy.push(fn);
 }
+/**
+ * Creates an event dispatcher that can be used to dispatch [component events](/docs#template-syntax-component-directives-on-eventname).
+ * Event dispatchers are functions that can take two arguments: `name` and `detail`.
+ *
+ * Component events created with `createEventDispatcher` create a
+ * [CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent).
+ * These events do not [bubble](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Building_blocks/Events#Event_bubbling_and_capture).
+ * The `detail` argument corresponds to the [CustomEvent.detail](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/detail)
+ * property and can contain any type of data.
+ *
+ * https://svelte.dev/docs#run-time-svelte-createeventdispatcher
+ */
 function createEventDispatcher() {
   const component = get_current_component();
-  return (type, detail) => {
+  return (type, detail, { cancelable = false } = {}) => {
     const callbacks = component.$$.callbacks[type];
     if (callbacks) {
       // TODO are there situations where events could be dispatched
       // in a server (non-DOM) environment?
-      const event = custom_event(type, detail);
+      const event = custom_event(type, detail, { cancelable });
       callbacks.slice().forEach((fn) => {
         fn.call(component, event);
       });
+      return !event.defaultPrevented;
     }
+    return true;
   };
 }
+/**
+ * Associates an arbitrary `context` object with the current component and the specified `key`
+ * and returns that object. The context is then available to children of the component
+ * (including slotted content) with `getContext`.
+ *
+ * Like lifecycle functions, this must be called during component initialisation.
+ *
+ * https://svelte.dev/docs#run-time-svelte-setcontext
+ */
 function setContext(key, context) {
   get_current_component().$$.context.set(key, context);
+  return context;
 }
+/**
+ * Retrieves the context that belongs to the closest parent component with the specified `key`.
+ * Must be called during component initialisation.
+ *
+ * https://svelte.dev/docs#run-time-svelte-getcontext
+ */
 function getContext(key) {
   return get_current_component().$$.context.get(key);
 }
+/**
+ * Retrieves the whole context map that belongs to the closest parent component.
+ * Must be called during component initialisation. Useful, for example, if you
+ * programmatically create a component and want to pass the existing context to it.
+ *
+ * https://svelte.dev/docs#run-time-svelte-getallcontexts
+ */
+function getAllContexts() {
+  return get_current_component().$$.context;
+}
+/**
+ * Checks whether a given `key` has been set in the context of a parent component.
+ * Must be called during component initialisation.
+ *
+ * https://svelte.dev/docs#run-time-svelte-hascontext
+ */
 function hasContext(key) {
   return get_current_component().$$.context.has(key);
 }
@@ -727,7 +1161,8 @@ function hasContext(key) {
 function bubble(component, event) {
   const callbacks = component.$$.callbacks[event.type];
   if (callbacks) {
-    callbacks.slice().forEach((fn) => fn(event));
+    // @ts-ignore
+    callbacks.slice().forEach((fn) => fn.call(this, event));
   }
 }
 
@@ -754,21 +1189,53 @@ function add_render_callback(fn) {
 function add_flush_callback(fn) {
   flush_callbacks.push(fn);
 }
-let flushing = false;
+// flush() calls callbacks in this order:
+// 1. All beforeUpdate callbacks, in order: parents before children
+// 2. All bind:this callbacks, in reverse order: children before parents.
+// 3. All afterUpdate callbacks, in order: parents before children. EXCEPT
+//    for afterUpdates called during the initial onMount, which are called in
+//    reverse order: children before parents.
+// Since callbacks might update component values, which could trigger another
+// call to flush(), the following steps guard against this:
+// 1. During beforeUpdate, any updated components will be added to the
+//    dirty_components array and will cause a reentrant call to flush(). Because
+//    the flush index is kept outside the function, the reentrant call will pick
+//    up where the earlier call left off and go through all dirty components. The
+//    current_component value is saved and restored so that the reentrant call will
+//    not interfere with the "parent" flush() call.
+// 2. bind:this callbacks cannot trigger new flush() calls.
+// 3. During afterUpdate, any updated components will NOT have their afterUpdate
+//    callback called a second time; the seen_callbacks set, outside the flush()
+//    function, guarantees this behavior.
 const seen_callbacks = new Set();
+let flushidx = 0; // Do *not* move this inside the flush() function
 function flush() {
-  if (flushing) return;
-  flushing = true;
+  // Do not reenter flush while dirty components are updated, as this can
+  // result in an infinite loop. Instead, let the inner flush handle it.
+  // Reentrancy is ok afterwards for bindings etc.
+  if (flushidx !== 0) {
+    return;
+  }
+  const saved_component = current_component;
   do {
     // first, call beforeUpdate functions
     // and update components
-    for (let i = 0; i < dirty_components.length; i += 1) {
-      const component = dirty_components[i];
-      set_current_component(component);
-      update(component.$$);
+    try {
+      while (flushidx < dirty_components.length) {
+        const component = dirty_components[flushidx];
+        flushidx++;
+        set_current_component(component);
+        update(component.$$);
+      }
+    } catch (e) {
+      // reset dirty state to not end up in a deadlocked state and then rethrow
+      dirty_components.length = 0;
+      flushidx = 0;
+      throw e;
     }
     set_current_component(null);
     dirty_components.length = 0;
+    flushidx = 0;
     while (binding_callbacks.length) binding_callbacks.pop()();
     // then, once components are updated, call
     // afterUpdate functions. This may cause
@@ -787,8 +1254,8 @@ function flush() {
     flush_callbacks.pop()();
   }
   update_scheduled = false;
-  flushing = false;
   seen_callbacks.clear();
+  set_current_component(saved_component);
 }
 function update($$) {
   if ($$.fragment !== null) {
@@ -847,11 +1314,14 @@ function transition_out(block, local, detach, callback) {
       }
     });
     block.o(local);
+  } else if (callback) {
+    callback();
   }
 }
 const null_transition = { duration: 0 };
 function create_in_transition(node, fn, params) {
-  let config = fn(node, params);
+  const options = { direction: "in" };
+  let config = fn(node, params, options);
   let running = false;
   let animation_name;
   let task;
@@ -860,8 +1330,13 @@ function create_in_transition(node, fn, params) {
     if (animation_name) delete_rule(node, animation_name);
   }
   function go() {
-    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
-      config || null_transition;
+    const {
+      delay = 0,
+      duration = 300,
+      easing = identity,
+      tick = noop,
+      css,
+    } = config || null_transition;
     if (css)
       animation_name = create_rule(
         node,
@@ -899,9 +1374,10 @@ function create_in_transition(node, fn, params) {
   return {
     start() {
       if (started) return;
+      started = true;
       delete_rule(node);
       if (is_function(config)) {
-        config = config();
+        config = config(options);
         wait().then(go);
       } else {
         go();
@@ -919,14 +1395,20 @@ function create_in_transition(node, fn, params) {
   };
 }
 function create_out_transition(node, fn, params) {
-  let config = fn(node, params);
+  const options = { direction: "out" };
+  let config = fn(node, params, options);
   let running = true;
   let animation_name;
   const group = outros;
   group.r += 1;
   function go() {
-    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
-      config || null_transition;
+    const {
+      delay = 0,
+      duration = 300,
+      easing = identity,
+      tick = noop,
+      css,
+    } = config || null_transition;
     if (css)
       animation_name = create_rule(node, 1, 0, duration, delay, easing, css);
     const start_time = now() + delay;
@@ -955,7 +1437,7 @@ function create_out_transition(node, fn, params) {
   if (is_function(config)) {
     wait().then(() => {
       // @ts-ignore
-      config = config();
+      config = config(options);
       go();
     });
   } else {
@@ -974,7 +1456,8 @@ function create_out_transition(node, fn, params) {
   };
 }
 function create_bidirectional_transition(node, fn, params, intro) {
-  let config = fn(node, params);
+  const options = { direction: "both" };
+  let config = fn(node, params, options);
   let t = intro ? 0 : 1;
   let running_program = null;
   let pending_program = null;
@@ -996,8 +1479,13 @@ function create_bidirectional_transition(node, fn, params, intro) {
     };
   }
   function go(b) {
-    const { delay = 0, duration = 300, easing = identity, tick = noop, css } =
-      config || null_transition;
+    const {
+      delay = 0,
+      duration = 300,
+      easing = identity,
+      tick = noop,
+      css,
+    } = config || null_transition;
     const program = {
       start: now() + delay,
       b,
@@ -1070,7 +1558,7 @@ function create_bidirectional_transition(node, fn, params, intro) {
       if (is_function(config)) {
         wait().then(() => {
           // @ts-ignore
-          config = config();
+          config = config(options);
           go(b);
         });
       } else {
@@ -1152,6 +1640,17 @@ function handle_promise(promise, info) {
     }
     info.resolved = promise;
   }
+}
+function update_await_block_branch(info, ctx, dirty) {
+  const child_ctx = ctx.slice();
+  const { resolved } = info;
+  if (info.current === info.then) {
+    child_ctx[info.value] = resolved;
+  }
+  if (info.current === info.catch) {
+    child_ctx[info.error] = resolved;
+  }
+  info.block.p(child_ctx, dirty);
 }
 
 const globals =
@@ -1317,7 +1816,9 @@ const boolean_attributes = new Set([
   "disabled",
   "formnovalidate",
   "hidden",
+  "inert",
   "ismap",
+  "itemscope",
   "loop",
   "multiple",
   "muted",
@@ -1331,16 +1832,37 @@ const boolean_attributes = new Set([
   "selected",
 ]);
 
-const invalid_attribute_name_character = /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
+/** regex of all html void element names */
+const void_element_names =
+  /^(?:area|base|br|col|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)$/;
+function is_void(name) {
+  return void_element_names.test(name) || name.toLowerCase() === "!doctype";
+}
+
+const invalid_attribute_name_character =
+  /[\s'">/=\u{FDD0}-\u{FDEF}\u{FFFE}\u{FFFF}\u{1FFFE}\u{1FFFF}\u{2FFFE}\u{2FFFF}\u{3FFFE}\u{3FFFF}\u{4FFFE}\u{4FFFF}\u{5FFFE}\u{5FFFF}\u{6FFFE}\u{6FFFF}\u{7FFFE}\u{7FFFF}\u{8FFFE}\u{8FFFF}\u{9FFFE}\u{9FFFF}\u{AFFFE}\u{AFFFF}\u{BFFFE}\u{BFFFF}\u{CFFFE}\u{CFFFF}\u{DFFFE}\u{DFFFF}\u{EFFFE}\u{EFFFF}\u{FFFFE}\u{FFFFF}\u{10FFFE}\u{10FFFF}]/u;
 // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
 // https://infra.spec.whatwg.org/#noncharacter
-function spread(args, classes_to_add) {
+function spread(args, attrs_to_add) {
   const attributes = Object.assign({}, ...args);
-  if (classes_to_add) {
-    if (attributes.class == null) {
-      attributes.class = classes_to_add;
-    } else {
-      attributes.class += " " + classes_to_add;
+  if (attrs_to_add) {
+    const classes_to_add = attrs_to_add.classes;
+    const styles_to_add = attrs_to_add.styles;
+    if (classes_to_add) {
+      if (attributes.class == null) {
+        attributes.class = classes_to_add;
+      } else {
+        attributes.class += " " + classes_to_add;
+      }
+    }
+    if (styles_to_add) {
+      if (attributes.style == null) {
+        attributes.style = style_object_to_string(styles_to_add);
+      } else {
+        attributes.style = style_object_to_string(
+          merge_ssr_styles(attributes.style, styles_to_add)
+        );
+      }
     }
   }
   let str = "";
@@ -1351,22 +1873,64 @@ function spread(args, classes_to_add) {
     else if (boolean_attributes.has(name.toLowerCase())) {
       if (value) str += " " + name;
     } else if (value != null) {
-      str += ` ${name}="${String(value)
-        .replace(/"/g, "&#34;")
-        .replace(/'/g, "&#39;")}"`;
+      str += ` ${name}="${value}"`;
     }
   });
   return str;
 }
-const escaped = {
-  '"': "&quot;",
-  "'": "&#39;",
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-};
-function escape(html) {
-  return String(html).replace(/["'&<>]/g, (match) => escaped[match]);
+function merge_ssr_styles(style_attribute, style_directive) {
+  const style_object = {};
+  for (const individual_style of style_attribute.split(";")) {
+    const colon_index = individual_style.indexOf(":");
+    const name = individual_style.slice(0, colon_index).trim();
+    const value = individual_style.slice(colon_index + 1).trim();
+    if (!name) continue;
+    style_object[name] = value;
+  }
+  for (const name in style_directive) {
+    const value = style_directive[name];
+    if (value) {
+      style_object[name] = value;
+    } else {
+      delete style_object[name];
+    }
+  }
+  return style_object;
+}
+const ATTR_REGEX = /[&"]/g;
+const CONTENT_REGEX = /[&<]/g;
+/**
+ * Note: this method is performance sensitive and has been optimized
+ * https://github.com/sveltejs/svelte/pull/5701
+ */
+function escape(value, is_attr = false) {
+  const str = String(value);
+  const pattern = is_attr ? ATTR_REGEX : CONTENT_REGEX;
+  pattern.lastIndex = 0;
+  let escaped = "";
+  let last = 0;
+  while (pattern.test(str)) {
+    const i = pattern.lastIndex - 1;
+    const ch = str[i];
+    escaped +=
+      str.substring(last, i) +
+      (ch === "&" ? "&amp;" : ch === '"' ? "&quot;" : "&lt;");
+    last = i + 1;
+  }
+  return escaped + str.substring(last);
+}
+function escape_attribute_value(value) {
+  // keep booleans, null, and undefined for the sake of `spread`
+  const should_escape =
+    typeof value === "string" || (value && typeof value === "object");
+  return should_escape ? escape(value, true) : value;
+}
+function escape_object(obj) {
+  const result = {};
+  for (const key in obj) {
+    result[key] = escape_attribute_value(obj[key]);
+  }
+  return result;
 }
 function each(items, fn) {
   let str = "";
@@ -1382,7 +1946,7 @@ function validate_component(component, name) {
   if (!component || !component.$$render) {
     if (name === "svelte:component") name += " this={...}";
     throw new Error(
-      `<${name}> is not a valid SSR component. You may need to review your build config to ensure that dependencies are compiled, rather than imported as pre-compiled modules`
+      `<${name}> is not a valid SSR component. You may need to review your build config to ensure that dependencies are compiled, rather than imported as pre-compiled modules. Otherwise you may need to fix a <${name}>.`
     );
   }
   return component;
@@ -1394,11 +1958,13 @@ function debug(file, line, column, values) {
 }
 let on_destroy;
 function create_ssr_component(fn) {
-  function $$render(result, props, bindings, slots) {
+  function $$render(result, props, bindings, slots, context) {
     const parent_component = current_component;
     const $$ = {
       on_destroy,
-      context: new Map(parent_component ? parent_component.$$.context : []),
+      context: new Map(
+        context || (parent_component ? parent_component.$$.context : [])
+      ),
       // these will be immediately discarded
       on_mount: [],
       before_update: [],
@@ -1411,10 +1977,10 @@ function create_ssr_component(fn) {
     return html;
   }
   return {
-    render: (props = {}, options = {}) => {
+    render: (props = {}, { $$slots = {}, context = new Map() } = {}) => {
       on_destroy = [];
       const result = { title: "", head: "", css: new Set() };
-      const html = $$render(result, props, {}, options);
+      const html = $$render(result, props, {}, $$slots, context);
       run_all(on_destroy);
       return {
         html,
@@ -1432,18 +1998,22 @@ function create_ssr_component(fn) {
 }
 function add_attribute(name, value, boolean) {
   if (value == null || (boolean && !value)) return "";
-  return ` ${name}${
-    value === true
-      ? ""
-      : `=${
-          typeof value === "string"
-            ? JSON.stringify(escape(value))
-            : `"${value}"`
-        }`
-  }`;
+  const assignment =
+    boolean && value === true ? "" : `="${escape(value, true)}"`;
+  return ` ${name}${assignment}`;
 }
 function add_classes(classes) {
   return classes ? ` class="${classes}"` : "";
+}
+function style_object_to_string(style_object) {
+  return Object.keys(style_object)
+    .filter((key) => style_object[key])
+    .map((key) => `${key}: ${escape_attribute_value(style_object[key])};`)
+    .join(" ");
+}
+function add_styles(style_object) {
+  const styles = style_object_to_string(style_object);
+  return styles ? ` style="${styles}"` : "";
 }
 
 function bind(component, name, callback) {
@@ -1460,14 +2030,17 @@ function claim_component(block, parent_nodes) {
   block && block.l(parent_nodes);
 }
 function mount_component(component, target, anchor, customElement) {
-  const { fragment, on_mount, on_destroy, after_update } = component.$$;
+  const { fragment, after_update } = component.$$;
   fragment && fragment.m(target, anchor);
   if (!customElement) {
     // onMount happens before the initial afterUpdate
     add_render_callback(() => {
-      const new_on_destroy = on_mount.map(run).filter(is_function);
-      if (on_destroy) {
-        on_destroy.push(...new_on_destroy);
+      const new_on_destroy = component.$$.on_mount.map(run).filter(is_function);
+      // if the component was destroyed immediately
+      // it will update the `$$.on_destroy` reference to `null`.
+      // the destructured on_destroy may still reference to the old array
+      if (component.$$.on_destroy) {
+        component.$$.on_destroy.push(...new_on_destroy);
       } else {
         // Edge case - component was destroyed immediately,
         // most likely as a result of a binding initialising
@@ -1504,13 +2077,14 @@ function init(
   create_fragment,
   not_equal,
   props,
+  append_styles,
   dirty = [-1]
 ) {
   const parent_component = current_component;
   set_current_component(component);
   const $$ = (component.$$ = {
     fragment: null,
-    ctx: null,
+    ctx: [],
     // state
     props,
     update: noop,
@@ -1522,12 +2096,16 @@ function init(
     on_disconnect: [],
     before_update: [],
     after_update: [],
-    context: new Map(parent_component ? parent_component.$$.context : []),
+    context: new Map(
+      options.context || (parent_component ? parent_component.$$.context : [])
+    ),
     // everything else
     callbacks: blank_object(),
     dirty,
     skip_bound: false,
+    root: options.target || parent_component.$$.root,
   });
+  append_styles && append_styles($$.root);
   let ready = false;
   $$.ctx = instance
     ? instance(component, options.props || {}, (i, ret, ...rest) => {
@@ -1546,6 +2124,7 @@ function init(
   $$.fragment = create_fragment ? create_fragment($$.ctx) : false;
   if (options.target) {
     if (options.hydrate) {
+      start_hydrating();
       const nodes = children(options.target);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       $$.fragment && $$.fragment.l(nodes);
@@ -1561,6 +2140,7 @@ function init(
       options.anchor,
       options.customElement
     );
+    end_hydrating();
     flush();
   }
   set_current_component(parent_component);
@@ -1593,6 +2173,9 @@ if (typeof HTMLElement === "function") {
     }
     $on(type, callback) {
       // TODO should this delegate to addEventListener?
+      if (!is_function(callback)) {
+        return noop;
+      }
       const callbacks =
         this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
       callbacks.push(callback);
@@ -1619,6 +2202,9 @@ class SvelteComponent {
     this.$destroy = noop;
   }
   $on(type, callback) {
+    if (!is_function(callback)) {
+      return noop;
+    }
     const callbacks = this.$$.callbacks[type] || (this.$$.callbacks[type] = []);
     callbacks.push(callback);
     return () => {
@@ -1637,16 +2223,26 @@ class SvelteComponent {
 
 function dispatch_dev(type, detail) {
   document.dispatchEvent(
-    custom_event(type, Object.assign({ version: "3.34.0" }, detail))
+    custom_event(type, Object.assign({ version: "3.55.1" }, detail), {
+      bubbles: true,
+    })
   );
 }
 function append_dev(target, node) {
   dispatch_dev("SvelteDOMInsert", { target, node });
   append(target, node);
 }
+function append_hydration_dev(target, node) {
+  dispatch_dev("SvelteDOMInsert", { target, node });
+  append_hydration(target, node);
+}
 function insert_dev(target, node, anchor) {
   dispatch_dev("SvelteDOMInsert", { target, node, anchor });
   insert(target, node, anchor);
+}
+function insert_hydration_dev(target, node, anchor) {
+  dispatch_dev("SvelteDOMInsert", { target, node, anchor });
+  insert_hydration(target, node, anchor);
 }
 function detach_dev(node) {
   dispatch_dev("SvelteDOMRemove", { node });
@@ -1739,6 +2335,42 @@ function validate_slots(name, slot, keys) {
     }
   }
 }
+function validate_dynamic_element(tag) {
+  const is_string = typeof tag === "string";
+  if (tag && !is_string) {
+    throw new Error(
+      '<svelte:element> expects "this" attribute to be a string.'
+    );
+  }
+}
+function validate_void_dynamic_element(tag) {
+  if (tag && is_void(tag)) {
+    console.warn(
+      `<svelte:element this="${tag}"> is self-closing and cannot have content.`
+    );
+  }
+}
+function construct_svelte_component_dev(component, props) {
+  const error_message =
+    "this={...} of <svelte:component> should specify a Svelte component.";
+  try {
+    const instance = new component(props);
+    if (!instance.$$ || !instance.$set || !instance.$on || !instance.$destroy) {
+      throw new Error(error_message);
+    }
+    return instance;
+  } catch (err) {
+    const { message } = err;
+    if (
+      typeof message === "string" &&
+      message.indexOf("is not a constructor") !== -1
+    ) {
+      throw new Error(error_message);
+    } else {
+      throw err;
+    }
+  }
+}
 /**
  * Base class for Svelte components with some minor dev-enhancements. Used when dev=true.
  */
@@ -1787,7 +2419,7 @@ class SvelteComponentDev extends SvelteComponent {
  * class ASubclassOfSvelteComponent extends SvelteComponent<{foo: string}> {}
  * const component: typeof SvelteComponent = ASubclassOfSvelteComponent;
  * ```
- * will throw a type error, so we need to seperate the more strictly typed class.
+ * will throw a type error, so we need to separate the more strictly typed class.
  */
 class SvelteComponentTyped extends SvelteComponentDev {
   constructor(options) {
@@ -1805,6 +2437,7 @@ function loop_guard(timeout) {
 
 export {
   HtmlTag,
+  HtmlTagHydration,
   SvelteComponent,
   SvelteComponentDev,
   SvelteComponentTyped,
@@ -1816,10 +2449,15 @@ export {
   add_location,
   add_render_callback,
   add_resize_listener,
+  add_styles,
   add_transform,
   afterUpdate,
   append,
   append_dev,
+  append_empty_stylesheet,
+  append_hydration,
+  append_hydration_dev,
+  append_styles,
   assign,
   attr,
   attr_dev,
@@ -1833,12 +2471,16 @@ export {
   children,
   claim_component,
   claim_element,
+  claim_html_tag,
   claim_space,
+  claim_svg_element,
   claim_text,
   clear_loops,
   component_subscribe,
   compute_rest_props,
   compute_slots,
+  construct_svelte_component,
+  construct_svelte_component_dev,
   createEventDispatcher,
   create_animation,
   create_bidirectional_transition,
@@ -1865,19 +2507,23 @@ export {
   element,
   element_is,
   empty,
+  end_hydrating,
   escape,
-  escaped,
+  escape_attribute_value,
+  escape_object,
   exclude_internal_props,
   fix_and_destroy_block,
   fix_and_outro_and_destroy_block,
   fix_position,
   flush,
+  getAllContexts,
   getContext,
+  get_all_dirty_from_scope,
   get_binding_group_value,
   get_current_component,
   get_custom_elements_slots,
+  get_root_for_style,
   get_slot_changes,
-  get_slot_context,
   get_spread_object,
   get_spread_update,
   get_store_value,
@@ -1886,10 +2532,13 @@ export {
   handle_promise,
   hasContext,
   has_prop,
+  head_selector,
   identity,
   init,
   insert,
   insert_dev,
+  insert_hydration,
+  insert_hydration_dev,
   intros,
   invalid_attribute_name_character,
   is_client,
@@ -1897,10 +2546,12 @@ export {
   is_empty,
   is_function,
   is_promise,
+  is_void,
   listen,
   listen_dev,
   loop,
   loop_guard,
+  merge_ssr_styles,
   missing_component,
   mount_component,
   noop,
@@ -1929,6 +2580,7 @@ export {
   set_attributes,
   set_current_component,
   set_custom_element_data,
+  set_custom_element_data_map,
   set_data,
   set_data_dev,
   set_input_type,
@@ -1940,6 +2592,8 @@ export {
   set_svg_attributes,
   space,
   spread,
+  src_url_equal,
+  start_hydrating,
   stop_propagation,
   subscribe,
   svg_element,
@@ -1950,13 +2604,17 @@ export {
   toggle_class,
   transition_in,
   transition_out,
+  trusted,
+  update_await_block_branch,
   update_keyed_each,
   update_slot,
-  update_slot_spread,
+  update_slot_base,
   validate_component,
+  validate_dynamic_element,
   validate_each_argument,
   validate_each_keys,
   validate_slots,
   validate_store,
+  validate_void_dynamic_element,
   xlink_attr,
 };

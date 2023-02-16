@@ -10,14 +10,16 @@ import {
   stylus,
   typescript,
 } from "svelte-preprocess";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { locateNodeModules, statSyncIfExists } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
 import JSON5 from "json5";
+import acorn from "acorn";
+import * as astWalk from "acorn-walk";
 const globToRegExp = require("glob-to-regexp");
 
-let svelteCode = "";
+let svelteCodePath = "";
 
 const preprocessorList = [
   scss({}),
@@ -60,41 +62,44 @@ export async function generate(
     target
   );
 
-  if (result.err.length !== 0)
-    return { js: {}, css: "", err: result.err, sourceMap: {}, sources: {} };
+  // if (result.err.length !== 0)
+  //   return { js: {}, css: "", err: result.err, sourceMap: {}, sources: {} };
 
   final.sourceMap[""] = filename;
   final.js[""] = result.js;
-  final.sourceMap[">svelte/internal"] = "svelte/internal";
-  final.js[">svelte/internal"] = svelteCode;
+  final.err.push(...result.err);
+  // final.sourceMap[">svelte/internal"] = "svelte/internal";
+  // final.js[">svelte/internal"] = svelteCode;
   final.css += result.css || "";
 
-  // Find Node modules
-  nodeModules = locateNodeModules(filename);
-  const uri = "";
-  let error = await walk(
-    result.js,
-    filename,
-    nodeModules,
-    uri,
-    transformModule.bind(webview)
-  );
-  if (error && error.code === "MODULE_NOT_FOUND") {
-    return {
-      js: {},
-      sources: {},
-      css: "",
-      err: [
-        {
-          message: `module not found: ${error.value}`,
-          start: {
-            line: 0,
-            column: 0,
+  if (result.js) {
+    // Find Node modules
+    nodeModules = locateNodeModules(filename);
+    const uri = "";
+    let error = await walk(
+      result.js,
+      filename,
+      nodeModules,
+      uri,
+      transformModule.bind(webview)
+    );
+    if (error && error.code === "MODULE_NOT_FOUND") {
+      return {
+        js: {},
+        sources: {},
+        css: "",
+        err: [
+          {
+            message: `module not found: ${error.value}`,
+            start: {
+              line: 0,
+              column: 0,
+            },
           },
-        },
-      ],
-      sourceMap: {},
-    };
+        ],
+        sourceMap: {},
+      };
+    }
   }
 
   return final;
@@ -109,7 +114,6 @@ async function transformModule(
   isNodeModule: boolean
 ) {
   final.sourceMap[uri] = modulePath;
-
   // Check if module is already included
   const cached = modulesCache.get(modulePath);
   if (cached) {
@@ -137,8 +141,9 @@ async function transformModule(
       compilerOptions: { module: 6, target: 1, strict: false },
     });
     final.js[uri] = js.outputText;
+    return js.outputText;
   } else {
-    // I think this is for assets, I don't remember xD 
+    // I think this is for assets, I don't remember xD
     const moduleURI = this.asWebviewUri(vscode.Uri.file(modulePath));
     final.sources[uri] = moduleURI.toString();
   }
@@ -160,31 +165,37 @@ async function walk(
   code: string;
   value: string;
 } | void> {
-  content = removeComments(content);
-  const regex =
-    /(?=\s*)(?!\/)(?<=from ["']|import ["'])(?<= ["']).*?(?=["'])/gm;
-  const sourcesRegex =
-    /(?=\s*)(?!\/)(?<=src_value = ["'])(?<= ["']).*?(?=["'])/gm;
+  const ast = acorn.parse(content, {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    allowImportExportEverywhere: true,
+  });
 
-  while (1) {
+  const imports: string[] = [];
+  astWalk.simple(ast, {
+    ImportDeclaration(node: any) {
+      imports.push(node.source.value);
+    },
+    CallExpression(node: any) {
+      if (node.callee.name === "require") {
+        imports.push(node.arguments[0].value);
+      }
+    },
+  });
+  for (const depName of imports) {
     let isNodeModule = false;
-    let match = regex.exec(content);
     let isSource = false;
-    if (!match || match[0] === "") {
-      match = sourcesRegex.exec(content);
-      if (!match || match[0] === "") break;
-      isSource = true;
-    }
 
-    const depName = match?.[0];
-    if (depName === undefined) return;
+    let depPath = "";
 
     // ==> RESOLVE ABSOLUTE PATH OF THE MODULE
-    let depPath = "";
-    if (depName.startsWith(".")) {
+    if (depName === "svelte/internal") {
+      depPath = svelteCodePath;
+    } else if (depName.startsWith(".")) {
+      // depName is a relative import, search it
       depPath = path.resolve(path.dirname(filePath), depName);
       const packageJsonPath = path.resolve(depPath, "package.json");
-      // no extension
+      // If depPath has no extension
       if (!depPath.match(/\.\w+$/)) {
         if (existsSync(depPath + ".js")) {
           depPath += ".js";
@@ -201,14 +212,15 @@ async function walk(
           depPath = path.resolve(depPath, "index.js");
         } else if (existsSync(path.resolve(depPath, "index.ts"))) {
           depPath = path.resolve(depPath, "index.ts");
-        } else if (!isSource) {
+        } else {
           return {
             code: "NOT_FOUND",
             value: depName,
           };
         }
       }
-    } else if (!isSource) {
+    } else {
+      // Not a relative import
       const alias = check_aliases(depName, filePath);
       if (alias) {
         depPath = alias;
@@ -218,31 +230,28 @@ async function walk(
           isNodeModule = true;
         }
       }
-      if (!depPath.match(/\.\w+$/)) {
-        if (existsSync(depPath + ".js")) {
-          depPath += ".js";
-        } else if (existsSync(depPath + ".ts")) {
-          depPath += ".ts";
-        } else if (existsSync(path.resolve(depPath, "package.json"))) {
-          const packageJsonPath = path.resolve(depPath, "package.json");
-          const packageJson = JSON.parse(
-            readFileSync(packageJsonPath).toString()
-          );
-          depPath = path.resolve(
-            depPath,
-            packageJson.module || packageJson.svelte
-          );
-        } else if (existsSync(depPath + ".mjs")) {
-          depPath += ".mjs";
-        } else if (existsSync(path.resolve(depPath, "index.js"))) {
-          depPath = path.resolve(depPath, "index.js");
-        } else if (existsSync(path.resolve(depPath, "index.ts"))) {
-          depPath = path.resolve(depPath, "index.ts");
-        } else {
-          // TODO: not found error
-        }
+      if (existsSync(depPath + ".js")) {
+        depPath += ".js";
+      } else if (existsSync(depPath + ".ts")) {
+        depPath += ".ts";
+      } else if (existsSync(path.resolve(depPath, "package.json"))) {
+        const packageJsonPath = path.resolve(depPath, "package.json");
+        const packageJson = JSON.parse(
+          readFileSync(packageJsonPath).toString()
+        );
+        depPath = path.resolve(
+          depPath,
+          packageJson.module || packageJson.svelte
+        );
+      } else if (existsSync(depPath + ".mjs")) {
+        depPath += ".mjs";
+      } else if (existsSync(path.resolve(depPath, "index.js"))) {
+        depPath = path.resolve(depPath, "index.js");
+      } else if (existsSync(path.resolve(depPath, "index.ts"))) {
+        depPath = path.resolve(depPath, "index.ts");
       }
     }
+
     const openDoc = vscode.workspace.textDocuments.find(
       (doc) => doc.fileName === depPath
     );
@@ -334,13 +343,13 @@ function check_aliases(alias: string, modulePath: string) {
 }
 
 export function loadSvelteCode(context: vscode.ExtensionContext) {
-  const filepath = path.join(
+  svelteCodePath = path.join(
     context?.extensionPath || "",
     "media",
     "svelte.js"
   );
-  const file = readFileSync(filepath);
-  svelteCode = file.toString();
+  // const file = readFileSync(svelteCodePath);
+  // svelteCode = file.toString();
 }
 async function compile(
   code: string,

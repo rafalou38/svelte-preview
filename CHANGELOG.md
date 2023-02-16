@@ -6,7 +6,7 @@
 
 ## [1.1.0]
 
-- Add support for preprocessors:
+- Add support for preprocessor:
   - scss
   - typescript
   - babel
@@ -36,7 +36,7 @@
     - clear button
     - object view
   - more compact errors
-- Add option to unlock and preview the curently focused file
+- Add option to unlock and preview the currently focused file
 
 ## [2.1.0]
 
@@ -67,7 +67,7 @@
 
 - add description tooltips to each switch
 - Add option to only reload on save
-- Reorganise switches order
+- Reorganize switches order
 - disable error shown for unused css selector
 - Improve blinking issues
 - Removed the changelog from the readme
@@ -98,7 +98,13 @@
 
 - Add $lib fallback for when tsconfig.json is not used
 
-## [2.5.4]
+## [2.5.5]
 
-- Bump typescript version
-- Show ansi errors as html
+- Fixes `Cannot read properties of undefined (reading '$$')`
+- improve performance (only includes recurrent modules once)
+
+## [2.6.0]
+
+- Switch to embedded `svelte/internal` to avoid version mismatch
+- Run preview even with warnings
+- Rework import system

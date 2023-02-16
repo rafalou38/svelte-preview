@@ -83,7 +83,8 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest(2.5.4)
+## latest [2.6.0]
 
-- Bump typescript version
-- Show ansi errors as html
+- Switch to embedded `svelte/internal` to avoid version mismatch
+- Run preview even with warnings
+- Reworked import system

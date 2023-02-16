@@ -37,19 +37,39 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.6.0</h4>
+
+    <ul>
+      <li>
+        Switch to embedded <kbd>svelte/internal</kbd> to avoid version mismatch
+      </li>
+      <li>Run preview even with warnings</li>
+      <li>Reworked import system: should fix most import issues</li>
+    </ul>
+
+    <h4>2.5.5</h4>
+
+    <ul>
+      <li>
+        Fixes <strong>Cannot read properties of undefined (reading '$$')</strong
+        >
+      </li>
+      <li>improve performance (only includes recurrent modules once)</li>
+    </ul>
+
     <h4>2.5.4</h4>
 
     <ul>
       <li>Bump typescript version</li>
       <li>Show ansi errors as html</li>
     </ul>
-    
-    <h4>2.5.3</h4>  
+
+    <h4>2.5.3</h4>
 
     <ul>
-      <li>Add $lib fallback for when tsconfig.json is not used </li>
+      <li>Add $lib fallback for when tsconfig.json is not used</li>
     </ul>
-    
+
     <h4>2.5.2</h4>
 
     <ul>

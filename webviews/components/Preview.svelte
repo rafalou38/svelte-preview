@@ -27,7 +27,7 @@
 
     await new Promise((resolve) => (iframe.onload = resolve));
 
-    if ($code?.err.length !== 0) return;
+    if (!$code || ($code?.err.length !== 0 && $code?.js[""] === "")) return;
 
     const IBody = iframe.contentDocument?.body;
     if (!IBody) return console.error("contentDocument does not have a body");
