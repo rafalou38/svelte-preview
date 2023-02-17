@@ -108,3 +108,8 @@
 - Switch to embedded `svelte/internal` to avoid version mismatch
 - Run preview even with warnings
 - Rework import system
+
+
+## [2.6.1]
+
+- Fix `svelte/transition` imports

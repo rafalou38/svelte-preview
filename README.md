@@ -83,8 +83,9 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest [2.6.0]
+## latest [2.6.1]
 
 - Switch to embedded `svelte/internal` to avoid version mismatch
 - Run preview even with warnings
 - Reworked import system
+- Fix `svelte/transition` imports

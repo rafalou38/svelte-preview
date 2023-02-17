@@ -37,6 +37,13 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.6.1</h4>
+
+    <ul>
+      <li>
+        Fix <kbd>svelte/transition</kbd> imports
+      </li>
+    </ul>
     <h4>2.6.0</h4>
 
     <ul>

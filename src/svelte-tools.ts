@@ -181,6 +181,21 @@ async function walk(
         imports.push(node.arguments[0].value);
       }
     },
+    ExportNamedDeclaration(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
+    ExportAllDeclaration(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
+    ExportSpecifier(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
   });
   for (const depName of imports) {
     let isNodeModule = false;
