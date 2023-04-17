@@ -11,8 +11,6 @@
     if ($config.rollup) return;
 
     // set only if rollup is not enabled
-    console.log(SaveReload.checked);
-
     $config.saveReload = !!SaveReload.checked;
     update();
   }

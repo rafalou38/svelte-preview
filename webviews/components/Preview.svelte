@@ -88,14 +88,21 @@
       $code.css;
     IBody.appendChild(style);
 
-    for (const styleLink of $config.externalStyles) {
-      if (!styleLink.enabled) continue;
+    for (const element of $config.externalElements) {
+      if (!element.enabled) continue;
 
-      const link = document.createElement("link");
-      link.setAttribute("rel", "stylesheet");
-      link.setAttribute("href", styleLink.link);
+      if (element.type == "style") {
+        const link = document.createElement("link");
+        link.setAttribute("rel", "stylesheet");
+        link.setAttribute("href", element.link);
 
-      IBody.appendChild(link);
+        IBody.appendChild(link);
+      } else {
+        const script = document.createElement("script");
+        script.setAttribute("src", element.link);
+        // script.setAttribute("defer", "true");
+        iframe.contentDocument?.head.appendChild(script);
+      }
     }
 
     applyConfig();

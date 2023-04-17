@@ -3,8 +3,8 @@ import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
 import * as rollup from "./rollup-version";
 import * as path from "path";
-import { IResult } from "./ambient";
-import { fetchExternalStyles } from "./fetchExternalStyles";
+import { ExternalElement, IResult } from "./ambient";
+import { fetchExternal } from "./fetchExternal";
 import ANSIToHtml from "ansi-to-html";
 
 const ansiToHtml = new ANSIToHtml();
@@ -116,18 +116,14 @@ export class PreviewPanel {
           break;
         }
         case "editConfig": {
-          const { rollup: oldRollup } = this.context?.workspaceState.get(
-            "svelte-preview-config"
-          ) || {
-            rollup: false,
-          };
+          const oldCfg = await this._getConfig();
 
           this.context?.workspaceState.update(
             "svelte-preview-config",
             data.value
           );
 
-          if (oldRollup !== data.value.rollup) {
+          if (oldCfg.rollup !== data.value.rollup || JSON.stringify(oldCfg.externalElements) !== JSON.stringify(data.value.externalElements)) {
             this.update();
           }
           break;
@@ -189,13 +185,10 @@ export class PreviewPanel {
 
   private async sendCode() {
     const startTime = Date.now();
-    const { rollup: useRollup } = this.context?.workspaceState.get(
-      "svelte-preview-config"
-    ) || {
-      rollup: false,
-    };
+    const config = await this._getConfig();
     let result: IResult | undefined;
-    if (useRollup) {
+
+    if (config.rollup) {
       result = await rollup.generate(
         this.document?.getText() || "",
         this.document?.fileName || "",
@@ -222,9 +215,9 @@ export class PreviewPanel {
       message: ansiToHtml.toHtml(err.message),
     }));
 
-    const config = await this._getConfig();
-    if (config.externalStyles?.length > 0) {
-      result.css += fetchExternalStyles(config.externalStyles);
+
+    if (config.externalElements?.length > 0) {
+      result.css += fetchExternal(config.externalElements);
     }
     result.startTime = startTime;
     this._panel.webview.postMessage({
@@ -239,12 +232,21 @@ export class PreviewPanel {
       zoom: "1",
       rollup: false,
       saveReload: false,
-      externalStyles: [],
+      externalElements: [] as ExternalElement[],
     };
-    return {
+    const result = {
       ...intitial,
       ...this.context?.workspaceState.get("svelte-preview-config", intitial),
     };
+
+    result.externalElements = result.externalElements.map(e => {
+      if (!e.type) {
+        e.type = "style";
+      }
+      return e;
+    });
+
+    return result;
   }
   private async sendConfig() {
     const config = await this._getConfig();

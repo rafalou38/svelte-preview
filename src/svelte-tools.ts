@@ -146,6 +146,7 @@ async function transformModule(
     // I think this is for assets, I don't remember xD
     const moduleURI = this.asWebviewUri(vscode.Uri.file(modulePath));
     final.sources[uri] = moduleURI.toString();
+    return content;
   }
 }
 
@@ -288,7 +289,11 @@ async function walk(
         depPath,
         uri + ">" + depName,
         isNodeModule
-      )) || depContent;
+      )) || "";
+
+    if (!depContent) {
+      return;
+    }
 
     let error = await walk(
       depContent,

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { type } from "os";
   import { config, vscode } from "./stores";
   import Button from "./wrappers/Button.svelte";
   import Checkbox from "./wrappers/Checkbox.svelte";
@@ -10,50 +11,122 @@
     $vscode?.postMessage({ type: "editConfig", value: $config });
     opened = false;
   }
-  $: console.log($config.externalStyles);
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div class="cover" on:click={close} class:shown={opened}>
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div class="popup" on:click|stopPropagation={null}>
     <h3>settings</h3>
     <h4>External styles</h4>
     <ul>
-      {#each $config.externalStyles as style, i}
-        <li>
-          <Checkbox bind:checked={style.enabled} label="" />
-          <TextField placeholder="url or file path" bind:value={style.link} />
-          <Button
-            on:click={() =>
-              ($config.externalStyles = $config.externalStyles.filter(
-                (_, j) => i !== j
-              ))}
-            startIcon="codicon-close"
-            appearance="icon"
-          />
-        </li>
+      {#each $config.externalElements as element, i}
+        {#if element.type == "style"}
+          <li>
+            <Checkbox bind:checked={element.enabled} label="" />
+            <TextField
+              placeholder="url or file path"
+              bind:value={element.link}
+            />
+            <Button
+              on:click={() =>
+                ($config.externalElements = $config.externalElements.filter(
+                  (_, j) => i !== j
+                ))}
+              startIcon="codicon-close"
+              appearance="icon"
+            />
+          </li>
+        {/if}
       {/each}
     </ul>
     <Button
       on:click={() =>
-        ($config.externalStyles = [
-          ...$config.externalStyles,
+        ($config.externalElements = [
+          ...$config.externalElements,
           {
             enabled: true,
             link: "",
+            type: "style",
           },
         ])}
-      label="add"
+      label="Add Style"
     />
     <Button
       on:click={() =>
-        ($config.externalStyles = [
-          ...$config.externalStyles,
+        ($config.externalElements = [
+          ...$config.externalElements,
           {
             enabled: true,
+            type: "style",
             link: "https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css",
           },
         ])}
-      label="add tailwind"
+      label="add tailwind 2.2.19 [OLD]"
+      appearance="secondary"
+    />
+    <Button
+      on:click={() =>
+        ($config.externalElements = [
+          ...$config.externalElements,
+          {
+            enabled: true,
+            type: "style",
+            link: "https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css",
+          },
+        ])}
+      label="add daisy UI"
+      appearance="secondary"
+    />
+    <h4>External scripts</h4>
+    <ul>
+      {#each $config.externalElements as element, i}
+        {#if element.type == "script"}
+          <li>
+            <Checkbox bind:checked={element.enabled} label="" />
+            <TextField
+              placeholder="url or file path"
+              bind:value={element.link}
+            />
+            <Button
+              on:click={() =>
+                ($config.externalElements = $config.externalElements.filter(
+                  (_, j) => i !== j
+                ))}
+              startIcon="codicon-close"
+              appearance="icon"
+            />
+          </li>
+        {/if}
+      {/each}
+    </ul>
+
+    <p>⚠️ Only load scripts you trust !</p>
+    <p>Svelte preview is not responsible for the scripts you load.</p>
+
+    <Button
+      on:click={() =>
+        ($config.externalElements = [
+          ...$config.externalElements,
+          {
+            enabled: true,
+            link: "",
+            type: "script",
+          },
+        ])}
+      label="Add Script"
+    />
+    <Button
+      on:click={() =>
+        ($config.externalElements = [
+          ...$config.externalElements,
+          {
+            enabled: true,
+            link: "https://cdn.tailwindcss.com",
+            type: "script",
+          },
+        ])}
+      label="add tailwind (script latest)"
       appearance="secondary"
     />
   </div>

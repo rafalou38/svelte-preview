@@ -16,7 +16,8 @@ export interface CompileError {
   pos: number;
 }
 
-export interface ExternalStyle {
+export type ExternalElement = {
   enabled: boolean;
   link: string;
-}
+  type: "script" | "style"
+};

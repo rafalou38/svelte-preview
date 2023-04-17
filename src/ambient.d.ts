@@ -18,14 +18,21 @@ interface IResult {
   err: (
     | Warning
     | {
-        start: {
-          line: any;
-          column: any;
-        };
-        message: any;
-      }
+      start: {
+        line: any;
+        column: any;
+      };
+      message: any;
+    }
   )[];
   sourceMap: {
     [key: string]: string;
   };
 }
+
+
+type ExternalElement = {
+  enabled: boolean;
+  link: string;
+  type: "script" | "style"
+};
