@@ -113,3 +113,11 @@
 ## [2.6.1]
 
 - Fix `svelte/transition` imports
+
+## latest [2.6.2]
+
++ add external scripts support (#15)
++ latest tailwind
++ console cleanup
++ reload on external edit
++ daisy ui button

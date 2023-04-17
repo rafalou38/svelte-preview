@@ -37,6 +37,14 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.6.2</h4>
+
+    <ul>
+      <li>add external scripts support (#15)</li>
+      <li>latest tailwind</li>
+      <li>reload on external edit</li>
+      <li>daisy ui option</li>
+    </ul>
     <h4>2.6.1</h4>
 
     <ul>

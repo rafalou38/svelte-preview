@@ -5,11 +5,17 @@
 
 # svelte-preview
 
-Svelte-preview is a vscode extension to preview your svelte components live
+Svelte-preview is a vscode extension to preview your svelte components live 
+
 
 ![extension icon](media/logo.png)
 
 ## Features
+
+### Loading of external styles and scripts
+
+![external imports](images/external.png)
+
 
 ### Live preview of svelte files
 
@@ -55,17 +61,15 @@ Svelte-preview is a vscode extension to preview your svelte components live
 This switch allows you to use rollup to compile your svelte files it is generaly slower and require you to save your files to update.
 
 - custom dependencies parser:
-  - sometimes does not work
-  - generaly faster
+  - may not always work
+  - usually faster
   - no need to save files
   - errors and logs show true file paths
-- custom dependencies parser:
-  - sometimes does not work
-  - generaly slower
+- Rollup:
+  - may not always work
+  - usually slower
   - need to save files
   - errors and logs show fake (blob) path
-
-I recomend not using rollup unless it dosent work or it take longer to compile without it.
 
 ## Extension Settings
 
@@ -83,9 +87,10 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest [2.6.1]
+## latest [2.6.2]
 
-- Switch to embedded `svelte/internal` to avoid version mismatch
-- Run preview even with warnings
-- Reworked import system
-- Fix `svelte/transition` imports
++ add external scripts support (#15)
++ latest tailwind
++ console cleanup
++ reload on external edit
++ daisy ui button
