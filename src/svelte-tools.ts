@@ -246,6 +246,9 @@ async function walk(
           isNodeModule = true;
         }
       }
+
+      const parentPackage = path.resolve(nodeModule, depName.split("/")[0], "package.json");
+
       if (existsSync(depPath + ".js")) {
         depPath += ".js";
       } else if (existsSync(depPath + ".ts")) {
@@ -265,6 +268,21 @@ async function walk(
         depPath = path.resolve(depPath, "index.js");
       } else if (existsSync(path.resolve(depPath, "index.ts"))) {
         depPath = path.resolve(depPath, "index.ts");
+      } else if (existsSync(parentPackage)) {
+        const packageJson = JSON.parse(
+          readFileSync(parentPackage).toString()
+        );
+
+        if (packageJson.exports) {
+          const match = packageJson.exports[depName.replace(/\w+\//, "./")];
+          if (match) {
+            if (typeof match === 'string') {
+              depPath = path.resolve(parentPackage, "..", match);
+            } else if (match.default || match.module || match.import || match.require) {
+              depPath = path.resolve(parentPackage, "..", match.default || match.module || match.import || match.require);
+            }
+          }
+        }
       }
     }
 
@@ -279,7 +297,7 @@ async function walk(
     } else if (!isSource) {
       return {
         code: "MODULE_NOT_FOUND",
-        value: depName,
+        value: `\u001b[1;91m${depName}\u001b[0m \n(imported by \u001b[1m${filePath.replace(path.resolve(nodeModule, ".."), "")}\u001b[0m)`,
       };
     }
     depContent =
