@@ -37,6 +37,16 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.7.0</h4>
+
+    <ul>
+      <li>Partial support for svelte-kit</li>
+      <li>Fix "svelte/store", "svelte/motion" and similar imports</li>
+      <li>Circular dependencies prevention system</li>
+      <li>Fix various resolver issues</li>
+      <li>Bump dependencies to support latest Typescript</li>
+      <li>Add a new setting to hide completely the control panel.</li>
+    </ul>
     <h4>2.6.2</h4>
 
     <ul>
@@ -70,94 +80,6 @@
         >
       </li>
       <li>improve performance (only includes recurrent modules once)</li>
-    </ul>
-
-    <h4>2.5.4</h4>
-
-    <ul>
-      <li>Bump typescript version</li>
-      <li>Show ansi errors as html</li>
-    </ul>
-
-    <h4>2.5.3</h4>
-
-    <ul>
-      <li>Add $lib fallback for when tsconfig.json is not used</li>
-    </ul>
-
-    <h4>2.5.2</h4>
-
-    <ul>
-      <li>Upgrade typescript version</li>
-      <ul>
-        <li>fixes `Unknown compiler option 'preserveValueImports'.`</li>
-      </ul>
-    </ul>
-
-    <h4>2.5.1</h4>
-    <ul>
-      <li>Fix codespaces support</li>
-      <li>Fix failed import of some modules</li>
-    </ul>
-    <h4>2.5.0</h4>
-    <ul>
-      <li>Add external styles support</li>
-      <ul>
-        <li>includes tailwind support</li>
-      </ul>
-    </ul>
-
-    <h4>2.4.2</h4>
-    <ul>
-      <li>
-        Show more details for Typescript issues no more `[svelte-preprocess]
-        Encountered type error`
-      </li>
-      <li>
-        Fix unresolved svelte/internal when no node_modules folder present in
-        project
-      </li>
-      <ul>
-        <li>preview without svelte installed now possible again</li>
-        <ul>
-          <li>No folder opened</li>
-        </ul>
-      </ul>
-    </ul>
-    <h4>2.4.0</h4>
-    <ul class="changes">
-      <li>add description tooltips to each switch</li>
-      <li>Add option to only reload on save</li>
-      <li>Reorganise switches order</li>
-      <li>disable error shown for unused css selector</li>
-      <li>Improve blinking issues</li>
-    </ul>
-    <h4>2.3.2</h4>
-    <ul class="changes">
-      <li>Add button to hide controls</li>
-    </ul>
-    <h4>2.3.1</h4>
-    <ul class="changes">
-      <li>Fix images preview</li>
-    </ul>
-    <h4>2.3.0</h4>
-    <ul class="changes">
-      <li>Fix failed svelte/internal import</li>
-      <li>Controls more responsive (wrap on different lines)</li>
-      <li>Add drawer info badge for when a new version is added</li>
-    </ul>
-    <h4>2.2.0</h4>
-    <ul class="changes">
-      <li>Add info tab in bottom drawer</li>
-      <li>add button to clear log on each code update</li>
-    </ul>
-    <h4>2.1.0</h4>
-    <ul class="changes">
-      <li>Fix critical errors</li>
-      <ul>
-        <li>remove nonce to allow user code execution</li>
-        <li>fix error caused by non existent path in tsconfig</li>
-      </ul>
     </ul>
   </div>
 </div>

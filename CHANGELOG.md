@@ -121,3 +121,12 @@
 + console cleanup
 + reload on external edit
 + daisy ui button
+  
+## latest [2.7.0]
+
++ Partial fix for svelte-kit
++ Fix "svelte/store", "svelte/motion" and similar imports
++ Circular dependencies prevention system
++ Fix various resolver issues
++ Bump dependencies to support latest Typescript
++ Add a new setting to hide completely the control panel.
