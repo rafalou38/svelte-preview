@@ -83,22 +83,40 @@ export async function generate(
       uri,
       transformModule.bind(webview)
     );
-    if (error && error.code === "MODULE_NOT_FOUND") {
-      return {
-        js: {},
-        sources: {},
-        css: "",
-        err: [
-          {
-            message: `module not found: ${error.value}`,
-            start: {
-              line: 0,
-              column: 0,
+    if (error) {
+      if (error.code === "MODULE_NOT_FOUND") {
+        return {
+          js: {},
+          sources: {},
+          css: "",
+          err: [
+            {
+              message: `module not found: ${error.value}`,
+              start: {
+                line: 0,
+                column: 0,
+              },
             },
-          },
-        ],
-        sourceMap: {},
-      };
+          ],
+          sourceMap: {},
+        };
+      } else if (error.code === "CIRCULAR") {
+        return {
+          js: {},
+          sources: {},
+          css: "",
+          err: [
+            {
+              message: `Maximum (60) import depth reached (circular dependencies): \n${error.value}`,
+              start: {
+                line: 0,
+                column: 0,
+              },
+            },
+          ],
+          sourceMap: {},
+        };
+      }
     }
   }
 
@@ -113,12 +131,15 @@ async function transformModule(
   uri: string,
   isNodeModule: boolean
 ) {
+  // if (content.includes("constants.js")) {
+  //   console.log(modulePath);
+  // }
   final.sourceMap[uri] = modulePath;
   // Check if module is already included
   const cached = modulesCache.get(modulePath);
   if (cached) {
     final.js[uri] = cached;
-    return;
+    return content;
   } else {
     modulesCache.set(modulePath, uri);
   }
@@ -166,6 +187,13 @@ async function walk(
   code: string;
   value: string;
 } | void> {
+  const segments = uri.split(">");
+  if (segments.length > 60) {
+    return {
+      code: "CIRCULAR",
+      value: segments.slice(0, 5).join(" -> ") + " -> ... -> " + segments.slice(-3).join(" -> ")
+    };
+  }
   const ast = acorn.parse(content, {
     ecmaVersion: "latest",
     sourceType: "module",
@@ -258,10 +286,38 @@ async function walk(
         const packageJson = JSON.parse(
           readFileSync(packageJsonPath).toString()
         );
-        depPath = path.resolve(
-          depPath,
-          packageJson.module || packageJson.svelte
-        );
+        if (packageJson.module || packageJson.svelte) {
+          depPath = path.resolve(
+            depPath,
+            packageJson.module || packageJson.svelte
+          );
+        }
+        if (packageJson.exports) {
+          if (depName.includes("/")) {
+            const match = packageJson.exports[depName.replace(/\w+\//, "./")];
+            if (match) {
+              if (typeof match === 'string') {
+                depPath = path.resolve(parentPackage, "..", match);
+              } else if (match.default || match.module || match.import || match.require) {
+                depPath = path.resolve(parentPackage, "..", match.default || match.module || match.import || match.require);
+              }
+            }
+          } else {
+            const match = packageJson.exports["."];
+            if (match) {
+              if (typeof match === 'string') {
+                depPath = path.resolve(parentPackage, "..", match);
+              } else {
+                const value = match.default || match.module || match.import || match.require;
+                if (typeof value === 'string') {
+                  depPath = path.resolve(parentPackage, "..", value);
+                } else if (value.default || value.development) {
+                  depPath = path.resolve(parentPackage, "..", value.default || value.development);
+                }
+              }
+            }
+          }
+        }
       } else if (existsSync(depPath + ".mjs")) {
         depPath += ".mjs";
       } else if (existsSync(path.resolve(depPath, "index.js"))) {
@@ -331,6 +387,14 @@ function removeComments(code: string) {
 function check_aliases(alias: string, modulePath: string) {
   const nodeModules = locateNodeModules(modulePath);
   if (!nodeModules) return;
+
+
+  if (alias.startsWith("__sveltekit")) {
+    return path.resolve(nodeModules, "@sveltejs/kit/src/runtime/app/" + alias.replace("__sveltekit/", ""));
+  }
+  if (alias.startsWith("$app")) {
+    return path.resolve(nodeModules, "@sveltejs/kit/src/runtime/app/" + alias.replace("$app/", ""));
+  }
 
   const tsconfigPath = path.join(path.dirname(nodeModules), "tsconfig.json");
   if (!existsSync(tsconfigPath)) {
