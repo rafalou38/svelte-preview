@@ -251,6 +251,11 @@ export class PreviewPanel {
   private async sendConfig() {
     const config = await this._getConfig();
 
+    const hidePanel = vscode.workspace.getConfiguration("svelte-preview").get("hide-panel", false);
+    this._panel.webview.postMessage({
+      type: "hide-panel-completely",
+      value: hidePanel,
+    });
     this._panel.webview.postMessage({
       type: "setConfig",
       value: config,

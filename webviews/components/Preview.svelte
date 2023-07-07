@@ -8,6 +8,7 @@
     config,
     InternalsourceMap,
     log,
+    panelFullHide,
     preservelog,
     vscode,
   } from "./stores";
@@ -134,7 +135,9 @@
 </script>
 
 <div class="wrapper">
-  <Controls />
+  {#if !$panelFullHide}
+    <Controls />
+  {/if}
   <div class="preview" style={$config.activeBg ? `--bg: ${$config.bg}` : ""}>
     <iframe title="preview" bind:this={iframe} />
   </div>

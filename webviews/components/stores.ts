@@ -26,6 +26,7 @@ let sourceMapValue: {
 };
 
 export const CURRENT_VERSION = "2.6.2";
+export const panelFullHide = writable(false);
 export const config = writable({
   center: false,
   activeBg: false,
@@ -61,6 +62,9 @@ window.addEventListener("message", (event) => {
       break;
     case "setConfig":
       config.set(event.data.value);
+      break;
+    case "hide-panel-completely":
+      panelFullHide.set(event.data.value);
       break;
     case "setLock":
       locked.set(event.data.value);

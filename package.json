@@ -24,6 +24,16 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Svelte Preview",
+      "properties": {
+        "svelte-preview.hide-panel": {
+          "type": "boolean",
+          "default": false,
+          "description": "Wether to hide the panel with the switches and buttons. ⚠️ You won't have access to the controls anymore."
+        }
+      }
+    },
     "commands": [
       {
         "command": "svelte-preview.componentPreview",
