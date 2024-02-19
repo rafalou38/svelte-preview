@@ -114,7 +114,7 @@
 
 - Fix `svelte/transition` imports
 
-## latest [2.6.2]
+## [2.6.2]
 
 + add external scripts support (#15)
 + latest tailwind
@@ -122,7 +122,7 @@
 + reload on external edit
 + daisy ui button
   
-## latest [2.7.0]
+## [2.7.0]
 
 + Partial fix for svelte-kit
 + Fix "svelte/store", "svelte/motion" and similar imports
@@ -130,3 +130,7 @@
 + Fix various resolver issues
 + Bump dependencies to support latest Typescript
 + Add a new setting to hide completely the control panel.
+
+## latest [2.7.1]
+
++ Fix web-based vscode versions issue

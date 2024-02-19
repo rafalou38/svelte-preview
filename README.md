@@ -87,11 +87,6 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest [2.7.0]
+## latest [2.7.1]
 
-+ Partial fix for svelte-kit
-+ Fix "svelte/store", "svelte/motion" and similar imports
-+ Circular dependencies prevention system
-+ Fix various resolver issues
-+ Bump dependencies to support latest Typescript
-+ Add a new setting to hide completely the control panel.
++ Fix web-based vscode versions issue

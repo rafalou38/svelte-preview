@@ -37,6 +37,12 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.7.1</h4>
+
+    <ul>
+      <li>Fix web-based vscode versions issue</li>
+    </ul>
+
     <h4>2.7.0</h4>
 
     <ul>
