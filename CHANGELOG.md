@@ -141,3 +141,8 @@
 + Add warning for unsupported svelte versions
 + Change code parser to support ts imports
 + Tweak resolver to support more cases
+
+## latest [2.7.3]
+
++ Fix Row/lines error
++ fix issue of previous release

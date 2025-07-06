@@ -88,9 +88,14 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest [2.7.2]
+## [2.7.2]
 
 + Change code parser to support ts imports
 + Tweak resolver to support more cases
 + Fix static script and styles in preview (fixed tailwind)
 + Add warning for unsupported svelte versions
+
+## latest [2.7.3]
+
++ Fix Row/lines error
++ fix issue of previous release

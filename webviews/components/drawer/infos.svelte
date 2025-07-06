@@ -37,6 +37,13 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+
+    <h4>2.7.3</h4>
+
+    <ul>
+      <li>Fix Row/lines error</li>
+      <li>fix issue of previous release</li>
+    </ul>
     <h4>2.7.2</h4>
 
     <ul>
