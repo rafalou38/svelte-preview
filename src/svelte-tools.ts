@@ -15,7 +15,8 @@ import { locateNodeModules, statSyncIfExists } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
 import JSON5 from "json5";
-import { TypescriptParser } from "typescript-parser";
+import acorn from "acorn";
+import * as astWalk from "acorn-walk";
 const globToRegExp = require("glob-to-regexp");
 
 let svelteCodePath = "";
@@ -186,6 +187,87 @@ async function transformModule(
   }
 }
 
+function parse_typescript_imports(content: string, filePath: string) {
+  const imports: string[] = [];
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    content,
+    ts.ScriptTarget.Latest,
+    /*setParentNodes*/ true,
+    ts.ScriptKind.Deferred
+  );
+
+  function visit(node: ts.Node) {
+    // import ... from 'module'
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+      imports.push(node.moduleSpecifier.text);
+    }
+
+    // require('module')
+    else if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'require' &&
+      node.arguments.length > 0 &&
+      ts.isStringLiteral(node.arguments[0])
+    ) {
+      imports.push(node.arguments[0].text);
+    }
+
+    // export ... from 'module' (covers both named and all exports)
+    else if (
+      ts.isExportDeclaration(node) &&
+      node.moduleSpecifier &&
+      ts.isStringLiteral(node.moduleSpecifier)
+    ) {
+      imports.push(node.moduleSpecifier.text);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+
+  return imports;
+}
+
+function parse_js_imports(content: string) {
+  const ast = acorn.parse(content, {
+    ecmaVersion: "latest",
+    sourceType: "module",
+    allowImportExportEverywhere: true,
+  });
+
+  const imports: string[] = [];
+  astWalk.simple(ast, {
+    ImportDeclaration(node: any) {
+      imports.push(node.source.value);
+    },
+    CallExpression(node: any) {
+      if (node.callee.name === "require") {
+        imports.push(node.arguments[0].value);
+      }
+    },
+    ExportNamedDeclaration(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
+    ExportAllDeclaration(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
+    ExportSpecifier(node: any) {
+      if (node.source) {
+        imports.push(node.source.value);
+      }
+    },
+  });
+
+  return imports;
+}
+
 async function walk(
   content: string,
   filePath: string,
@@ -209,9 +291,32 @@ async function walk(
       value: segments.slice(0, 5).join(" -> ") + " -> ... -> " + segments.slice(-3).join(" -> ")
     };
   }
-  const parser = new TypescriptParser();
-  const parsed = await parser.parseSource(content, ts.ScriptKind.Unknown);
-  const imports = parsed.imports.map(i => i.libraryName);
+  let imports: string[] = [];
+
+  console.log(filePath);
+
+  if (filePath.endsWith(".ts")) {
+    imports = parse_typescript_imports(content, filePath);
+    console.log("parse ts");
+
+  } else {
+    try {
+      imports = parse_js_imports(content);
+      console.log("parse js");
+
+    } catch (error) {
+      try {
+        imports = parse_typescript_imports(content, filePath);
+        console.log("parse ts");
+
+      } catch (error2) {
+        return {
+          code: "PARSE_ERROR",
+          value: (error as Error).message
+        };
+      }
+    }
+  }
 
   for (const depName of imports) {
     let isNodeModule = false;

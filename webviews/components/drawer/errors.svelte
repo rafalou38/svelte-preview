@@ -28,7 +28,7 @@
             {@html error.message}
           </span>
           <span class="dim">
-            [{error.start.column}:{error.start.line}]
+            [{error.start.line}:{error.start.column}]
           </span>
         </div>
         {#if error.filename}
