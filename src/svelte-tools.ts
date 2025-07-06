@@ -293,21 +293,15 @@ async function walk(
   }
   let imports: string[] = [];
 
-  console.log(filePath);
-
   if (filePath.endsWith(".ts")) {
     imports = parse_typescript_imports(content, filePath);
-    console.log("parse ts");
 
   } else {
     try {
       imports = parse_js_imports(content);
-      console.log("parse js");
-
     } catch (error) {
       try {
         imports = parse_typescript_imports(content, filePath);
-        console.log("parse ts");
 
       } catch (error2) {
         return {
