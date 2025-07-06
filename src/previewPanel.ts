@@ -3,7 +3,7 @@ import { getNonce } from "./getNonce";
 import * as svelte from "./svelte-tools";
 import * as rollup from "./rollup-version";
 import * as path from "path";
-import { ExternalElement, IResult } from "./ambient";
+import type { ExternalElement, IResult } from "./ambient";
 import { fetchExternal } from "./fetchExternal";
 import ANSIToHtml from "ansi-to-html";
 
@@ -217,7 +217,14 @@ export class PreviewPanel {
 
 
     if (config.externalElements?.length > 0) {
-      result.css += fetchExternal(config.externalElements);
+      result.css += await fetchExternal(config.externalElements.filter(e => e.type === "style"));
+    }
+
+    for (const element of config.externalElements) {
+      if(element.type === "script") {
+        const content = await fetchExternal([element]);
+        result.js[element.link] = content;
+      }
     }
     result.startTime = startTime;
     this._panel.webview.postMessage({

@@ -5,7 +5,7 @@ import * as resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 const sveltePreprocess = require("svelte-preprocess");
 import { locateNodeModules } from "./utils";
-import { IResult } from "./ambient";
+import type { IResult } from "./ambient";
 const outputOptions = {};
 
 export async function generate(

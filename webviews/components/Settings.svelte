@@ -122,7 +122,7 @@
           ...$config.externalElements,
           {
             enabled: true,
-            link: "https://cdn.tailwindcss.com",
+            link: "https://unpkg.com/@tailwindcss/browser@4",
             type: "script",
           },
         ])}

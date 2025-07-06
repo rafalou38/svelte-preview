@@ -7,6 +7,7 @@
 
 Svelte-preview is a vscode extension to preview your svelte components live 
 
+> :warning: **The extension does not yet support the latest svelte versions (runes).**
 
 ![extension icon](media/logo.png)
 
@@ -87,6 +88,9 @@ Some node modules raise this when using custom dependencies parser:
 
 See changelog to see all the versions
 
-## latest [2.7.1]
+## latest [2.7.2]
 
-+ Fix web-based vscode versions issue
++ Change code parser to support ts imports
++ Tweak resolver to support more cases
++ Fix static script and styles in preview (fixed tailwind)
++ Add warning for unsupported svelte versions

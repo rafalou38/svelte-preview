@@ -15,8 +15,7 @@ import { locateNodeModules, statSyncIfExists } from "./utils";
 import { IResult } from "./ambient";
 import ts from "typescript";
 import JSON5 from "json5";
-import acorn from "acorn";
-import * as astWalk from "acorn-walk";
+import { TypescriptParser } from "typescript-parser";
 const globToRegExp = require("glob-to-regexp");
 
 let svelteCodePath = "";
@@ -116,6 +115,22 @@ export async function generate(
           ],
           sourceMap: {},
         };
+      } else if (error.code === "PARSE_ERROR") {
+        return {
+          js: {},
+          sources: {},
+          css: "",
+          err: [
+            {
+              message: error.value,
+              start: {
+                line: 0,
+                column: 0,
+              },
+            },
+          ],
+          sourceMap: {},
+        };
       }
     }
   }
@@ -194,38 +209,10 @@ async function walk(
       value: segments.slice(0, 5).join(" -> ") + " -> ... -> " + segments.slice(-3).join(" -> ")
     };
   }
-  const ast = acorn.parse(content, {
-    ecmaVersion: "latest",
-    sourceType: "module",
-    allowImportExportEverywhere: true,
-  });
+  const parser = new TypescriptParser();
+  const parsed = await parser.parseSource(content, ts.ScriptKind.Unknown);
+  const imports = parsed.imports.map(i => i.libraryName);
 
-  const imports: string[] = [];
-  astWalk.simple(ast, {
-    ImportDeclaration(node: any) {
-      imports.push(node.source.value);
-    },
-    CallExpression(node: any) {
-      if (node.callee.name === "require") {
-        imports.push(node.arguments[0].value);
-      }
-    },
-    ExportNamedDeclaration(node: any) {
-      if (node.source) {
-        imports.push(node.source.value);
-      }
-    },
-    ExportAllDeclaration(node: any) {
-      if (node.source) {
-        imports.push(node.source.value);
-      }
-    },
-    ExportSpecifier(node: any) {
-      if (node.source) {
-        imports.push(node.source.value);
-      }
-    },
-  });
   for (const depName of imports) {
     let isNodeModule = false;
     let isSource = false;
@@ -239,8 +226,8 @@ async function walk(
       // depName is a relative import, search it
       depPath = path.resolve(path.dirname(filePath), depName);
       const packageJsonPath = path.resolve(depPath, "package.json");
-      // If depPath has no extension
-      if (!depPath.match(/\.\w+$/)) {
+      // If depPath has no extension / does not exist
+      if (!depPath.match(/\.\w+$/) || !existsSync(depPath)) {
         if (existsSync(depPath + ".js")) {
           depPath += ".js";
         } else if (existsSync(depPath + ".mjs")) {
@@ -410,7 +397,10 @@ function check_aliases(alias: string, modulePath: string) {
   }
 
   const tsconfig = JSON5.parse(readFileSync(tsconfigPath).toString());
-  const aliases = (tsconfig?.compilerOptions?.paths || {}) as {
+  const aliases = (tsconfig?.compilerOptions?.paths || {
+    "$lib": ["src/lib"],
+    "$lib/*": ["src/lib/*"]
+  }) as {
     [key: string]: string[];
   };
   let final = "";

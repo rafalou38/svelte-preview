@@ -25,7 +25,7 @@ let sourceMapValue: {
   [key: string]: string;
 };
 
-export const CURRENT_VERSION = "2.7.1";
+export const CURRENT_VERSION = "2.7.2";
 export const panelFullHide = writable(false);
 export const config = writable({
   center: false,

@@ -131,6 +131,13 @@
 + Bump dependencies to support latest Typescript
 + Add a new setting to hide completely the control panel.
 
-## latest [2.7.1]
+## [2.7.1]
 
 + Fix web-based vscode versions issue
+
+## latest [2.7.2]
+
++ Fix static script and styles in preview (fixed tailwind)
++ Add warning for unsupported svelte versions
++ Change code parser to support ts imports
++ Tweak resolver to support more cases

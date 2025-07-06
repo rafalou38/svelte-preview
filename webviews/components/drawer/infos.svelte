@@ -37,6 +37,15 @@
 
   <h3>📄 Latest changes:</h3>
   <div class="field">
+    <h4>2.7.2</h4>
+
+    <ul>
+      <li>Fix static script and styles in preview (fixed tailwind)</li>
+      <li>Add warning for unsupported svelte versions</li>
+      <li>Change code parser to support ts imports</li>
+      <li>Tweak resolver to support more cases</li>
+    </ul>
+
     <h4>2.7.1</h4>
 
     <ul>

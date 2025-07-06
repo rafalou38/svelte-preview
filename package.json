@@ -96,8 +96,6 @@
     "@rollup/plugin-typescript": "^8.1.1",
     "@vscode/codicons": "^0.0.27",
     "@vscode/webview-ui-toolkit": "^0.9.0",
-    "acorn": "^8.10.0",
-    "acorn-walk": "^8.2.0",
     "ansi-to-html": "^0.7.2",
     "coffeescript": "^2.7.0",
     "estree-walker": "^3.0.3",
@@ -118,6 +116,7 @@
     "svelte": "3.55.1",
     "svelte-json-tree": "^0.1.0",
     "svelte-preprocess": "^5.0.4",
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "typescript-parser": "^2.6.1"
   }
 }

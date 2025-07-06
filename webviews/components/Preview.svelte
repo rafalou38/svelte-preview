@@ -89,20 +89,11 @@
       $code.css;
     IBody.appendChild(style);
 
-    for (const element of $config.externalElements) {
-      if (!element.enabled) continue;
-
-      if (element.type == "style") {
-        const link = document.createElement("link");
-        link.setAttribute("rel", "stylesheet");
-        link.setAttribute("href", element.link);
-
-        IBody.appendChild(link);
-      } else {
+    for (const uri of Object.keys($code.js)) {
+      if(uri.startsWith("http")){
         const script = document.createElement("script");
-        script.setAttribute("src", element.link);
-        // script.setAttribute("defer", "true");
-        iframe.contentDocument?.head.appendChild(script);
+        script.innerHTML = $code.js[uri];
+        IBody.appendChild(script);
       }
     }
 
